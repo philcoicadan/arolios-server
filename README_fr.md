@@ -1,0 +1,43 @@
+# Aperçu général
+
+**AROLIOS** est un projet de logiciels **open source** pour **gérer les données** utilisées dans un domaine métier ou tout autre activité .
+
+**AROLIOS** apporte une réponse à toutes celles et ceux qui recherchent une solution ayant une ou plusieurs des particularités suivantes :
+
+* la définition des types de données selon la vue du domaine métier ou de l'activité,
+* les fonctions de base de gestion de données,
+* l'import/export de données en masse,
+* le multilinguisme pour les types de données et les données texte,
+* une mise en oeuvre très rapide sans besoin de programmation,
+* l'intégration dans le système d'information facilitée par une interface de programmation,
+* l'accès sécurisé pour tous les utilisateurs via les technologies Web,
+* des modifications/extensions possibles sans dépendre d'un fournisseur unique
+
+Les fonctions de gestion de données sont **génériques**, c'est-à-dire indépendantes du type de données.
+
+Une fois vos types de données définis, **aucune programmation** n'est nécessaire, **aucun code supplémentaire n'est généré**, vous pouvez de suite **créer, rechercher, consulter, modifier, supprimer** des données.
+
+Le projet **AROLIOS** est composé actuellement de trois logiciels:
+* **AROLIOS Core** est le logiciel comprenant plusieurs bibliothèques de programmes implémentant les fonctionnalités ainsi qu'un programme  pour initialiser la base de données.
+* **AROLIOS Server** est le logiciel agissant comme serveur Web et implémentant une interface de programmation (l'API AROLIOS) en faisant appel à AROLIOS Core
+* **AROLIOS WebUI** est le logiciel interagissant avec l'utilisateur, s'exécutant dans son navigateur Web et communiquant avec un serveur implémentant l'API AROLIOS.  
+
+
+# Documentation
+
+Voir la documentation [ici](https://lab.frogg.it/philcoicadan/arolios-doc)
+
+# Assistance
+
+Si vous constatez une anomalie ou si vous avez une suggestion d'amélioration, ouvrez un ticket dans ce projet. Pour toute autre demande, vous pouvez envoyer une courriel à [cette adresse](mailto:philcoicadan@arolios.org).
+
+
+# Contribution
+
+Voir le fichier CONTRIBUTING.md
+
+# Licence
+
+AROLIOS Server est publié sous licence GNU AGPL (identifiant SPDX: AGPL-3.0-or-later).
+Voir le fichier COPYING
+

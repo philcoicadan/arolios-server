@@ -1,0 +1,1 @@
+../core/CONTRIBUTING.md

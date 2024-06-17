@@ -1,0 +1,378 @@
+/*
+ *
+ * Copyright (C) 2024 Philippe Coicadan. All rights reserved.
+ * License: AGPL-3.0-or-later
+ *
+ */
+#include <ctlr/Trash.h>
+#include <svru/Request.h>
+#include <svru/Response.h>
+#include <mttr/Class_instance_association_eliminate.h>
+#include <mttr/Class_instance_association_recover.h>
+#include <mttr/Classifier_instance_eliminate.h>
+#include <mttr/Classifier_instance_recover.h>
+#include <mttr/Trash_empty.h>
+#include <common/App_info.h>
+#include <common/Singleton.h>
+#include <common/Object_model_info.h>
+#include <qry/Trash_list.h>
+#include <qry/Instance_filter.h>
+#include <util/String.h>
+#include <svru/Request.h>
+#include <svru/Response.h>
+#include <qry/Return_code.h>
+
+
+using namespace arolios;
+using namespace arolios::ctlr;
+
+void Trash::list_instances(
+    const HttpRequestPtr &req,
+    std::function<void(const HttpResponsePtr &)> &&callback,
+    std::string &&p_offset, std::string &&p_limit, std::string &&p_sort,
+    std::string &&p_direction, std::string &&p_filters,
+    std::string &&p_lang) const {
+
+
+
+  auto app_ptr = common::Singleton<common::App_info>::instance().object();
+
+  try {
+
+
+    auto lang = app_ptr->get_language_by_code(p_lang);
+
+    auto list_params =
+        svru::Request::check_list_params(p_sort, p_direction, p_limit, p_offset);
+
+    
+
+    const auto &filters = qry::Instance_filter::make_fts_filters(p_filters);
+
+    auto resp = HttpResponse::newHttpResponse();
+
+    qry::Trash_list q( list_params.offset_, list_params.limit_,
+                      list_params.sort_, list_params.direction_, filters, lang);
+
+    q.execute();
+
+    if (q.return_code() == qry::Return_code::OK) {
+      const Json::Value &json = q.return_json();
+
+      resp = HttpResponse::newHttpJsonResponse(json);
+
+
+    } else {
+      resp->setStatusCode(k500InternalServerError);
+      resp->setContentTypeCode(CT_TEXT_HTML);
+      resp->setBody("Trash list failed ");
+    }
+
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+  catch (const std::exception &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+     
+    resp->setStatusCode(k500InternalServerError);
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+}
+
+void Trash::recover_instance(
+    const HttpRequestPtr &req,
+    std::function<void(const HttpResponsePtr &)> &&callback,
+    std::string &&p_trash_id) const {
+
+
+  
+  auto app_ptr = common::Singleton<common::App_info>::instance().object();
+
+  try {
+
+    auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
+
+
+
+    const auto [csf_id, row_id] =
+        qry::Util::split_instance_id(p_trash_id);
+   
+
+    // lookup class at first
+
+    auto cls =
+        om_ptr->find_domain_element_by_id<omm::Class>(std::to_string(csf_id));
+
+
+
+    auto resp = HttpResponse::newHttpResponse();
+
+
+
+    auto json_ptr = req->jsonObject();
+
+    if (cls) {
+      std::shared_ptr<omm::Table> elem_lo = cls->table();
+
+      if (elem_lo) {
+
+        const int upd_count =
+            (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
+
+        mttr::Classifier_instance_recover ir( cls, p_trash_id,
+                                             upd_count);
+        ir.execute();
+
+        if (ir.return_code() == qry::Return_code::OK) {
+          resp->setStatusCode(k202Accepted);
+          resp->setContentTypeCode(CT_TEXT_HTML);
+          resp->setBody("Instance recoverd ");
+        } else {
+          resp->setStatusCode(k422UnprocessableEntity);
+          resp->setContentTypeCode(CT_TEXT_HTML);
+          resp->setBody("Instance restoring failed ");
+        }
+      } else {
+        resp->setStatusCode(k500InternalServerError);
+        resp->setContentTypeCode(CT_TEXT_HTML);
+        resp->setBody("Class without relational object ");
+      }
+
+    } else {
+      const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
+          std::to_string(csf_id));
+      if (assoc) {
+        std::shared_ptr<omm::Table> elem_lo = assoc->table();
+        const int upd_count =
+            (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
+
+        if (elem_lo) {
+          // additional table for association (binary association N-M)
+
+          mttr::Classifier_instance_recover ir(assoc, p_trash_id,
+                                               upd_count);
+          ir.execute();
+
+          if (ir.return_code() == qry::Return_code::OK) {
+            resp->setStatusCode(k202Accepted);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Instance recoverd ");
+          } else {
+            resp->setStatusCode(k422UnprocessableEntity);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Instance restoring failed ");
+          }
+
+        } else { // no table (binary association 1-N or 1-1), one class instance
+                 // must be updated
+
+          mttr::Class_instance_association_recover iar( assoc,
+                                                       p_trash_id, upd_count);
+          iar.execute();
+
+          if (iar.return_code() == qry::Return_code::OK) {
+            resp->setStatusCode(k202Accepted);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Instance recoverd ");
+          } else {
+            resp->setStatusCode(k422UnprocessableEntity);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Instance restoring failed ");
+          }
+        }
+
+      } else {
+        resp->setStatusCode(k400BadRequest);
+        resp->setContentTypeCode(CT_TEXT_HTML);
+        resp->setBody("Classifier not found ");
+      }
+    }
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+  catch (const std::exception &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+     
+    resp->setStatusCode(k500InternalServerError);
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+}
+
+void Trash::eliminate_instance(
+    const HttpRequestPtr &req,
+    std::function<void(const HttpResponsePtr &)> &&callback,
+    std::string &&p_trash_id) const {
+
+
+
+
+  try {
+
+
+    auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
+
+
+    const auto [csf_id, row_id] =
+        qry::Util::split_instance_id(p_trash_id);
+
+ 
+
+    // lookup class at first
+
+    auto cls =
+        om_ptr->find_domain_element_by_id<omm::Class>(std::to_string(csf_id));
+
+
+    auto resp = HttpResponse::newHttpResponse();
+
+
+    auto json_ptr = req->jsonObject();
+
+    if (cls) {
+      std::shared_ptr<omm::Table> elem_lo = cls->table();
+
+      if (elem_lo) {
+
+        const int upd_count =
+            (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
+
+        mttr::Classifier_instance_eliminate ip( cls, p_trash_id,
+                                               upd_count);
+        ip.execute();
+
+        if (ip.return_code() == qry::Return_code::OK) {
+          resp->setStatusCode(k202Accepted);
+          resp->setContentTypeCode(CT_TEXT_HTML);
+          resp->setBody("Instance deleted definitively");
+        } else {
+          resp->setStatusCode(k422UnprocessableEntity);
+          resp->setContentTypeCode(CT_TEXT_HTML);
+          resp->setBody("Instance definitive deletion failed ");
+        }
+      } else {
+        resp->setStatusCode(k500InternalServerError);
+        resp->setContentTypeCode(CT_TEXT_HTML);
+        resp->setBody("Class without relational object ");
+      }
+
+    } else {
+      const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
+          std::to_string(csf_id));
+      if (assoc) {
+        std::shared_ptr<omm::Table> elem_lo = assoc->table();
+        const int upd_count =
+            (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
+
+        if (elem_lo) {
+          // additional table for association (binary association N-M)
+
+          mttr::Classifier_instance_eliminate ip(assoc, p_trash_id,
+                                                 upd_count);
+          ip.execute();
+
+          if (ip.return_code() == qry::Return_code::OK) {
+            resp->setStatusCode(k202Accepted);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Instance deleted definitively");
+          } else {
+            resp->setStatusCode(k422UnprocessableEntity);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Instance definitive deletion failed ");
+          }
+
+        } else { // no table (binary association 1-N or 1-1), one class instance
+                 // must be updated
+
+          mttr::Class_instance_association_eliminate iap(assoc,
+                                                         p_trash_id, upd_count);
+          iap.execute();
+
+          if (iap.return_code() == qry::Return_code::OK) {
+            resp->setStatusCode(k202Accepted);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Instance deleted definitively");
+          } else {
+            resp->setStatusCode(k422UnprocessableEntity);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Instance definitive deletion failed ");
+          }
+        }
+
+      } else {
+        resp->setStatusCode(k400BadRequest);
+        resp->setContentTypeCode(CT_TEXT_HTML);
+        resp->setBody("Classifier not found ");
+      }
+    }
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+  catch (const std::exception &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+     
+    resp->setStatusCode(k500InternalServerError);
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+}
+
+void Trash::empty(
+    const HttpRequestPtr &req,
+    std::function<void(const HttpResponsePtr &)> &&callback) const {
+
+  
+
+
+  try {
+
+
+    auto resp = HttpResponse::newHttpResponse();
+
+    mttr::Trash_empty tp;
+
+    tp.execute();
+
+    if (tp.return_code() == qry::Return_code::OK) {
+      resp->setStatusCode(k202Accepted);
+      resp->setContentTypeCode(CT_TEXT_HTML);
+      resp->setBody("Trash emptying ended successfully");
+
+    } else {
+      resp->setStatusCode(k500InternalServerError);
+      resp->setContentTypeCode(CT_TEXT_HTML);
+      resp->setBody("Trash emptying failed ");
+    }
+
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+  catch (const std::exception &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+     
+    resp->setStatusCode(k500InternalServerError);
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+}
