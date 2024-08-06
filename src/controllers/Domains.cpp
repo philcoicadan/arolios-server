@@ -5,6 +5,7 @@
  *
  */
 #include <ctlr/Domains.h>
+#include <drogon/HttpTypes.h>
 #include <json/json.h>
 #include <qry/Domains_list.h>
 #include <qry/Classifiers_list.h>
@@ -51,7 +52,7 @@ void Domains::list(const HttpRequestPtr& req,std::function<void (const HttpRespo
             resp = HttpResponse::newHttpJsonResponse ( json );
 
         } else {
-            resp->setStatusCode ( k500InternalServerError );
+            resp->setStatusCode ( drogon::k422UnprocessableEntity );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Domains list failed " );
         }
@@ -109,7 +110,7 @@ template <typename T> void Domains::list_classifiers(const HttpRequestPtr& req,s
                 resp = HttpResponse::newHttpJsonResponse ( json );
 
             } else {
-                resp->setStatusCode ( k500InternalServerError );
+                resp->setStatusCode ( drogon::k422UnprocessableEntity );
                 resp->setContentTypeCode ( CT_TEXT_HTML );
                 resp->setBody ( "Domain elements list failed " );
             }

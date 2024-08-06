@@ -5,6 +5,7 @@
  *
  */
 #include <ctlr/Translations.h>
+#include <drogon/HttpTypes.h>
 #include <json/json.h>
 #include <model/Model_tlt_loader.h>
 #include <svru/Request.h>
@@ -27,7 +28,7 @@ void Translations::load(const HttpRequestPtr& req,std::function<void (const Http
     if ( fileUpload.parse ( req ) != 0 || fileUpload.getFiles().size() != 1 ) {
         auto resp = HttpResponse::newHttpResponse();
         resp->setBody ( "Must only be one file" );
-        resp->setStatusCode ( k403Forbidden );
+        resp->setStatusCode ( drogon::k400BadRequest );
         svru::Response::add_allow_headers (resp, req) ;
         callback ( resp );
         return;

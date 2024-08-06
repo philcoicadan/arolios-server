@@ -71,7 +71,7 @@ void Instances::update(const HttpRequestPtr &req,
                     iu.execute ();
                     
                     if (iu.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( k202Accepted );
+                        resp->setStatusCode ( drogon::k200OK );
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance updated " );
                     } else {
@@ -100,7 +100,7 @@ void Instances::update(const HttpRequestPtr &req,
                     iu.execute ();
                     
                     if (iu.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( k202Accepted );
+                        resp->setStatusCode ( k200OK );
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance updated " );
                     } else {
@@ -116,7 +116,7 @@ void Instances::update(const HttpRequestPtr &req,
                     iau.execute ();
                     
                     if (iau.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( k202Accepted );
+                        resp->setStatusCode ( k200OK );
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance updated " );
                     } else {
@@ -189,7 +189,7 @@ void Instances::deletion(const HttpRequestPtr &req,
                     id.execute ();
                     
                     if (id.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( k202Accepted );
+                        resp->setStatusCode ( drogon::k200OK );
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance deleted " );
                     } else {
@@ -217,7 +217,7 @@ const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
                     id.execute ();
                     
                     if (id.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( k202Accepted );
+                        resp->setStatusCode ( k200OK);
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance deleted " );
                     } else {
@@ -232,7 +232,7 @@ const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
                     iad.execute ();
                     
                     if (iad.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( k202Accepted );
+                        resp->setStatusCode ( k200OK );
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance deleted " );
                     } else {
@@ -323,7 +323,7 @@ const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
                     resp = HttpResponse::newHttpJsonResponse ( json );
 
                 } else {
-                    resp->setStatusCode ( k500InternalServerError );
+                    resp->setStatusCode ( drogon::k422UnprocessableEntity );
                     resp->setContentTypeCode ( CT_TEXT_HTML );
                     resp->setBody ( "Instance reading failed " );
                 }
@@ -351,7 +351,7 @@ const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
                     resp = HttpResponse::newHttpJsonResponse ( json );
 
                 } else {
-                    resp->setStatusCode ( k500InternalServerError );
+                    resp->setStatusCode ( k422UnprocessableEntity );
                     resp->setContentTypeCode ( CT_TEXT_HTML );
                     resp->setBody ( "Instance reading failed " );
                 }
@@ -455,7 +455,7 @@ void
 
 
                     } else {
-                        resp->setStatusCode ( k500InternalServerError );
+                        resp->setStatusCode ( drogon::k422UnprocessableEntity );
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance associations list failed " );
                     }
@@ -500,7 +500,7 @@ void Instances::import(const HttpRequestPtr &req,
   if (fileUpload.parse(req) != 0 || fileUpload.getFiles().size() != 1) {
     auto resp = HttpResponse::newHttpResponse();
     resp->setBody("Must only be one file");
-    resp->setStatusCode(k403Forbidden);
+    resp->setStatusCode(drogon::k400BadRequest);
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);
@@ -530,11 +530,11 @@ void Instances::import(const HttpRequestPtr &req,
     resp->setContentTypeCode(CT_TEXT_HTML);
 
     if (importer.return_code() == qry::Return_code::OK) {
-        resp->setStatusCode(k202Accepted);
+        resp->setStatusCode(drogon::k200OK);
         resp->setBody("File imported ");
     }
     else {
-        resp->setStatusCode(drogon::k417ExpectationFailed);
+        resp->setStatusCode(drogon::k422UnprocessableEntity);
         resp->setBody("File imported with errors");
     }
 
@@ -568,7 +568,7 @@ void Instances::import(const HttpRequestPtr &req,
   if (fileUpload.parse(req) != 0 || fileUpload.getFiles().size() > 2) {
     auto resp = HttpResponse::newHttpResponse();
     resp->setBody("One or two files are expected");
-    resp->setStatusCode(k403Forbidden);
+    resp->setStatusCode(drogon::k400BadRequest);
     svru::Response::add_allow_headers(resp, req);
     callback(resp);
     return;
@@ -610,12 +610,12 @@ void Instances::import(const HttpRequestPtr &req,
 
 
       } else {
-        resp->setStatusCode(k500InternalServerError);
+        resp->setStatusCode(drogon::k422UnprocessableEntity);
         resp->setContentTypeCode(CT_TEXT_HTML);
         resp->setBody("Query failed ");
       }
     } else {
-      resp->setStatusCode(k500InternalServerError);
+      resp->setStatusCode(k400BadRequest);
       resp->setContentTypeCode(CT_TEXT_HTML);
       resp->setBody("Query failed ");
     }

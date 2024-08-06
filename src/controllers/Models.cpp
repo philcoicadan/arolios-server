@@ -5,6 +5,7 @@
  *
  */
 #include <ctlr/Models.h>
+#include <drogon/HttpTypes.h>
 #include <json/json.h>
 #include <model/Model_loader.h>
 #include <svru/Request.h>
@@ -26,7 +27,7 @@ void Models::load(const HttpRequestPtr& req,std::function<void (const HttpRespon
     if ( fileUpload.parse ( req ) != 0 || fileUpload.getFiles().size() != 1 ) {
         auto resp = HttpResponse::newHttpResponse();
         resp->setBody ( "Only one file is expected" );
-        resp->setStatusCode ( k403Forbidden );
+        resp->setStatusCode ( drogon::k400BadRequest );
         svru::Response::add_allow_headers (resp, req) ;
         callback ( resp );
         return;

@@ -5,6 +5,7 @@
  *
  */
 #include <ctlr/Languages.h>
+#include <drogon/HttpTypes.h>
 #include <json/json.h>
 #include <common/App_info.h>
 #include <common/Singleton.h>
@@ -53,7 +54,7 @@ void Languages::list ( const HttpRequestPtr& req,std::function<void ( const Http
 
 
         } else {
-            resp->setStatusCode ( k500InternalServerError );
+            resp->setStatusCode ( drogon::k422UnprocessableEntity );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "languages list failed " );
         }

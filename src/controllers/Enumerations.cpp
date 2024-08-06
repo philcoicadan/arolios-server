@@ -5,6 +5,7 @@
  *
  */
 #include <ctlr/Enumerations.h>
+#include <drogon/HttpTypes.h>
 #include <json/json.h>
 #include <common/Object_model_info.h>
 #include <common/App_info.h>
@@ -130,7 +131,7 @@ void Enumerations::values(const HttpRequestPtr& req,std::function<void (const Ht
 
 
             } else {
-                resp->setStatusCode ( k500InternalServerError );
+                resp->setStatusCode ( drogon::k422UnprocessableEntity );
                 resp->setContentTypeCode ( CT_TEXT_HTML );
                 resp->setBody ( "Values list failed " );
             }

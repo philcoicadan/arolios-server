@@ -4,6 +4,7 @@
  * License: AGPL-3.0-or-later
  *
  */
+#include <drogon/HttpTypes.h>
 #include <svru/Request.h>
 #include <svru/Response.h>
 #include <drogon/HttpAppFramework.h>
@@ -48,7 +49,7 @@ void Apps::load_config(const HttpRequestPtr& req,std::function<void (const HttpR
     if ( fileUpload.parse ( req ) != 0 || fileUpload.getFiles().size() != 1 ) {
         auto resp = HttpResponse::newHttpResponse();
         resp->setBody ( "Must only be one file" );
-        resp->setStatusCode ( k403Forbidden );
+        resp->setStatusCode ( drogon::k400BadRequest );
         callback ( resp );
         return;
     }

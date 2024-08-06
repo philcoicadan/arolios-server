@@ -5,6 +5,7 @@
  *
  */
 #include <ctlr/Trash.h>
+#include <drogon/HttpTypes.h>
 #include <svru/Request.h>
 #include <svru/Response.h>
 #include <mttr/Class_instance_association_eliminate.h>
@@ -130,9 +131,9 @@ void Trash::recover_instance(
         ir.execute();
 
         if (ir.return_code() == qry::Return_code::OK) {
-          resp->setStatusCode(k202Accepted);
+          resp->setStatusCode(drogon::k200OK);
           resp->setContentTypeCode(CT_TEXT_HTML);
-          resp->setBody("Instance recoverd ");
+          resp->setBody("Instance recovered ");
         } else {
           resp->setStatusCode(k422UnprocessableEntity);
           resp->setContentTypeCode(CT_TEXT_HTML);
@@ -160,9 +161,9 @@ void Trash::recover_instance(
           ir.execute();
 
           if (ir.return_code() == qry::Return_code::OK) {
-            resp->setStatusCode(k202Accepted);
+            resp->setStatusCode(k200OK);
             resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Instance recoverd ");
+            resp->setBody("Instance recovered ");
           } else {
             resp->setStatusCode(k422UnprocessableEntity);
             resp->setContentTypeCode(CT_TEXT_HTML);
@@ -177,9 +178,9 @@ void Trash::recover_instance(
           iar.execute();
 
           if (iar.return_code() == qry::Return_code::OK) {
-            resp->setStatusCode(k202Accepted);
+            resp->setStatusCode(k200OK);
             resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Instance recoverd ");
+            resp->setBody("Instance recovered ");
           } else {
             resp->setStatusCode(k422UnprocessableEntity);
             resp->setContentTypeCode(CT_TEXT_HTML);
@@ -253,7 +254,7 @@ void Trash::eliminate_instance(
         ip.execute();
 
         if (ip.return_code() == qry::Return_code::OK) {
-          resp->setStatusCode(k202Accepted);
+          resp->setStatusCode(drogon::k200OK);
           resp->setContentTypeCode(CT_TEXT_HTML);
           resp->setBody("Instance deleted definitively");
         } else {
@@ -283,7 +284,7 @@ void Trash::eliminate_instance(
           ip.execute();
 
           if (ip.return_code() == qry::Return_code::OK) {
-            resp->setStatusCode(k202Accepted);
+            resp->setStatusCode(k200OK);
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Instance deleted definitively");
           } else {
@@ -300,7 +301,7 @@ void Trash::eliminate_instance(
           iap.execute();
 
           if (iap.return_code() == qry::Return_code::OK) {
-            resp->setStatusCode(k202Accepted);
+            resp->setStatusCode(k200OK);
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Instance deleted definitively");
           } else {
@@ -350,7 +351,7 @@ void Trash::empty(
     tp.execute();
 
     if (tp.return_code() == qry::Return_code::OK) {
-      resp->setStatusCode(k202Accepted);
+      resp->setStatusCode(drogon::k200OK);
       resp->setContentTypeCode(CT_TEXT_HTML);
       resp->setBody("Trash emptying ended successfully");
 

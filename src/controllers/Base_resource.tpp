@@ -5,6 +5,7 @@
  *
  */
 #include <ctlr/Base_resource.h>
+#include <drogon/HttpTypes.h>
 #include <svru/Request.h>
 #include <svru/Response.h>
 #include <util/String.h>
@@ -43,7 +44,7 @@ template < typename TC> void Base_resource::create(const HttpRequestPtr& req,std
 
             resp = HttpResponse::newHttpJsonResponse ( ac.return_json() );
         } else {
-            resp->setStatusCode ( k500InternalServerError );
+            resp->setStatusCode ( drogon::k422UnprocessableEntity );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Resource creation failed " );
         }
@@ -90,7 +91,7 @@ template <typename TL> void Base_resource::list (const HttpRequestPtr& req,std::
             resp = HttpResponse::newHttpJsonResponse ( json );
 
         } else {
-            resp->setStatusCode ( k500InternalServerError );
+            resp->setStatusCode ( drogon::k422UnprocessableEntity );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Resource list failed " );
         }
@@ -145,7 +146,7 @@ template <typename TU> void Base_resource::read(const HttpRequestPtr& req,std::f
                 resp = HttpResponse::newHttpJsonResponse ( json );
 
         } else {
-            resp->setStatusCode ( k500InternalServerError );
+            resp->setStatusCode ( drogon::k422UnprocessableEntity );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Resource reading failed " );
         }
@@ -185,7 +186,7 @@ template <typename TU> void Base_resource::update(const HttpRequestPtr& req,std:
         au.execute ();
 
         if ( au.return_code () == qry::Return_code::OK ) {
-            resp->setStatusCode ( k202Accepted );
+            resp->setStatusCode ( drogon::k200OK );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "App updated " );
         } else {
@@ -228,7 +229,7 @@ template <typename TD> void Base_resource::deletion (const HttpRequestPtr& req,s
         ad.execute ();
 
         if ( ad.return_code () == qry::Return_code::OK ) {
-            resp->setStatusCode ( k202Accepted );
+            resp->setStatusCode ( drogon::k200OK );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Resource deleted " );
         } else {

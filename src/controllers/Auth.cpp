@@ -8,6 +8,7 @@
 #include <drogon/HttpAppFramework.h>
 #include <common/App_info.h>
 #include <common/Singleton.h>
+#include <drogon/HttpTypes.h>
 #include <plugin/User_access_control.h>
 #include <common/User.h>
 #include <svru/Request.h>
@@ -68,7 +69,7 @@ void Auth::login ( const HttpRequestPtr& req,std::function<void ( const HttpResp
         } else {
             auto resp = HttpResponse::newHttpResponse();
             resp->setBody ( "Username and/or Password not valid" );
-            resp->setStatusCode ( k401Unauthorized );
+            resp->setStatusCode ( drogon::k404NotFound );
             svru::Response::add_allow_headers (resp, req) ;
 
             callback ( resp );
@@ -78,7 +79,7 @@ void Auth::login ( const HttpRequestPtr& req,std::function<void ( const HttpResp
     } else {
         auto resp = HttpResponse::newHttpResponse();
 
-        resp->setStatusCode ( k401Unauthorized );
+        resp->setStatusCode ( drogon::k400BadRequest );
         svru::Response::add_allow_headers (resp, req) ;
 
         callback ( resp );
@@ -127,7 +128,7 @@ void Auth::change_password (const HttpRequestPtr& req,std::function<void (const 
             ucp.execute ();
 
             if ( ucp.return_code () == qry::Return_code::OK ) {
-                resp->setStatusCode ( k202Accepted );
+                resp->setStatusCode ( drogon::k200OK );
                 resp->setContentTypeCode ( CT_TEXT_HTML );
                 resp->setBody ( "User password updated " );
             } else {

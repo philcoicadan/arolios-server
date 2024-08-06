@@ -40,7 +40,7 @@ class Domains:public drogon::HttpController<Domains>
     ADD_METHOD_TO(ctlr::Nothing::options_6, "/domains/{1}/associations?o={2}&l={3}&s={4}&d={5}&lang={6}",Options, "arolios::filter::Get_option");
     ADD_METHOD_TO(ctlr::Domains::list_classifiers<omm::Association>, "/domains/{1}/associations?o={2}&l={3}&s={4}&d={5}&lang={6}", drogon::Get, "arolios::filter::Login", arolios::filter::RAC_util::Reader());
     
-    ADD_METHOD_TO(ctlr::Nothing::options_6, "/{1}/enumerations?o={2}&l={3}&s={4}&d={5}&lang={6}",Options, "arolios::filter::Get_option");
+    ADD_METHOD_TO(ctlr::Nothing::options_6, "/domains/{1}/enumerations?o={2}&l={3}&s={4}&d={5}&lang={6}",Options, "arolios::filter::Get_option");
     ADD_METHOD_TO(ctlr::Domains::list_classifiers<omm::Enumeration>, "/domains/{1}/enumerations?o={2}&l={3}&s={4}&d={5}&lang={6}", drogon::Get, "arolios::filter::Login", arolios::filter::RAC_util::Reader());
     
 
