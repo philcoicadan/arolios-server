@@ -30,9 +30,10 @@ void Domains::list(const HttpRequestPtr& req,std::function<void (const HttpRespo
 
 	
             
-    const auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
     try {
+        const auto app_ptr = common::Singleton<common::App_info>::instance().object();
+
  
         auto lang = app_ptr->get_language_by_code(util::String::standardize(p_lang));
         
@@ -52,7 +53,7 @@ void Domains::list(const HttpRequestPtr& req,std::function<void (const HttpRespo
             resp = HttpResponse::newHttpJsonResponse ( json );
 
         } else {
-            resp->setStatusCode ( drogon::k422UnprocessableEntity );
+            resp->setStatusCode ( drogon::k400BadRequest );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Domains list failed " );
         }
@@ -60,30 +61,35 @@ void Domains::list(const HttpRequestPtr& req,std::function<void (const HttpRespo
 
         callback ( resp );
         return;
-    }
-    catch ( const std::exception&  e ) {
-        auto resp = HttpResponse::newHttpResponse();
-        resp->setBody ( e.what() );
-         
-        resp->setStatusCode ( k500InternalServerError );
-        svru::Response::add_allow_headers (resp, req) ;
+    } 
+    catch (const exception::Input_error &e) {
+      auto resp = HttpResponse::newHttpResponse();
+      resp->setBody(e.what());
+      resp->setStatusCode(k400BadRequest);
+      svru::Response::add_allow_headers(resp, req);
 
-        callback ( resp );
-        return;
-    }
+      callback(resp);
+      return;
+    } 
+    catch (const std::exception &e) {
+      auto resp = HttpResponse::newHttpResponse();
+      resp->setBody(e.what());
 
+      resp->setStatusCode(k500InternalServerError);
+      svru::Response::add_allow_headers(resp, req);
+
+      callback(resp);
+      return;
+    }
 }
 
 
 
 template <typename T> void Domains::list_classifiers(const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback, std::string&& p_pk_name, std::string&& p_offset, std::string&& p_limit, std::string&& p_sort, std::string&& p_direction, std::string&& p_lang ) const {
 
-	
-    
-                
-    const auto app_ptr = common::Singleton<common::App_info>::instance().object();
-
     try {
+        const auto app_ptr = common::Singleton<common::App_info>::instance().object();
+
         auto lang = app_ptr->get_language_by_code(p_lang);
         
         const auto list_params = svru::Request::check_list_params (p_sort, p_direction, p_limit, p_offset, false);
@@ -110,7 +116,7 @@ template <typename T> void Domains::list_classifiers(const HttpRequestPtr& req,s
                 resp = HttpResponse::newHttpJsonResponse ( json );
 
             } else {
-                resp->setStatusCode ( drogon::k422UnprocessableEntity );
+                resp->setStatusCode ( drogon::k400BadRequest);
                 resp->setContentTypeCode ( CT_TEXT_HTML );
                 resp->setBody ( "Domain elements list failed " );
             }
@@ -123,6 +129,15 @@ template <typename T> void Domains::list_classifiers(const HttpRequestPtr& req,s
         svru::Response::add_allow_headers (resp, req) ;
 
         callback ( resp );
+        return;
+    }
+    catch (const exception::Input_error &e) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody(e.what());
+        resp->setStatusCode(k400BadRequest);
+        svru::Response::add_allow_headers(resp, req);
+
+        callback(resp);
         return;
     }
     catch ( const std::exception&  e ) {

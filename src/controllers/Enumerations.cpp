@@ -27,13 +27,6 @@
 #include <svru/Response.h>
 
 
-
-
-
-
-
-
-
 using namespace arolios;
 using namespace arolios::ctlr;
 
@@ -45,12 +38,8 @@ void Enumerations::list(
     std::string &&p_offset, std::string &&p_limit, std::string &&p_sort,
     std::string &&p_direction, std::string &&p_lang) const {
 
-  
-
-
-  const auto app_ptr = common::Singleton<common::App_info>::instance().object();
-
   try {
+    const auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
 
     auto lang = app_ptr->get_language_by_code(util::String::standardize(p_lang));
@@ -101,9 +90,10 @@ void Enumerations::values(const HttpRequestPtr& req,std::function<void (const Ht
 
     
 
-    auto app_ptr = common::Singleton<common::App_info>::instance().object();
     
     try {
+        auto app_ptr = common::Singleton<common::App_info>::instance().object();
+
         auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
         auto lang = app_ptr->get_language_by_code(p_lang);
 
@@ -131,7 +121,7 @@ void Enumerations::values(const HttpRequestPtr& req,std::function<void (const Ht
 
 
             } else {
-                resp->setStatusCode ( drogon::k422UnprocessableEntity );
+                resp->setStatusCode ( drogon::k400BadRequest );
                 resp->setContentTypeCode ( CT_TEXT_HTML );
                 resp->setBody ( "Values list failed " );
             }
@@ -145,6 +135,15 @@ void Enumerations::values(const HttpRequestPtr& req,std::function<void (const Ht
 
         callback ( resp );
         return;
+    }
+    catch (const exception::Input_error &e) {
+      auto resp = HttpResponse::newHttpResponse();
+      resp->setBody(e.what());
+      resp->setStatusCode(k400BadRequest);
+      svru::Response::add_allow_headers(resp, req);
+
+      callback(resp);
+      return;
     }
     catch ( const std::exception&  e ) {
         auto resp = HttpResponse::newHttpResponse();

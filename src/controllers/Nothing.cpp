@@ -76,7 +76,7 @@ void Nothing::options_11 (const HttpRequestPtr& req,std::function<void (const Ht
 
 void Nothing::common_options (const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback) {
 
-     
+    // called only if the filter of OPTIONS request is badly called
     
         const auto & res = drogon::HttpResponse::newHttpResponse();
         res->setStatusCode(k500InternalServerError);

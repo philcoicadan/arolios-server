@@ -11,6 +11,7 @@
 #include <drogon/HttpAppFramework.h>
 #include <drogon/HttpRequest.h>
 #include <drogon/HttpResponse.h>
+#include <drogon/HttpTypes.h>
 #include <drogon/utils/Utilities.h>
 #include <json/json.h>
 #include <qry/Classifier_properties_list.h>
@@ -30,14 +31,6 @@
 #include <svru/Response.h>
 
 
-
-
-
-
-
-
-
-
 using namespace arolios;
 using namespace arolios::ctlr;
 
@@ -50,9 +43,9 @@ void Classifiers<T>::list_instances(
     std::string &&p_prop_list, std::string &&p_lang) const {
 
 
-  auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
   try {
+    auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
     auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
 
@@ -98,7 +91,7 @@ void Classifiers<T>::list_instances(
 
 
       } else {
-        resp->setStatusCode(k500InternalServerError);
+        resp->setStatusCode(drogon::k400BadRequest);
         resp->setContentTypeCode(CT_TEXT_HTML);
         resp->setBody("Instances list failed ");
       }
@@ -112,7 +105,16 @@ void Classifiers<T>::list_instances(
 
     callback(resp);
     return;
-  }
+  } 
+  catch (const exception::Input_error &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+    resp->setStatusCode(k400BadRequest);
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  } 
   catch (const std::exception &e) {
     auto resp = HttpResponse::newHttpResponse();
     resp->setBody(e.what());
@@ -132,9 +134,9 @@ void Classifiers<T>::create_instance(
     std::string &&p_elem) const {
 
 
-  auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
   try {
+    auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
     auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
 
@@ -162,7 +164,7 @@ void Classifiers<T>::create_instance(
           if (ic.return_code() == qry::Return_code::OK) {
             resp = HttpResponse::newHttpJsonResponse(ic.return_json());
           } else {
-            resp->setStatusCode(k500InternalServerError);
+            resp->setStatusCode(drogon::k400BadRequest);
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Classifier instance creation failed ");
           }
@@ -179,7 +181,7 @@ void Classifiers<T>::create_instance(
 
             resp = HttpResponse::newHttpJsonResponse(iac.return_json());
           } else {
-            resp->setStatusCode(k500InternalServerError);
+            resp->setStatusCode(k400BadRequest);
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Association instance creation failed ");
           }
@@ -200,8 +202,17 @@ void Classifiers<T>::create_instance(
 
     callback(resp);
     return;
-  }
-    catch (const std::exception &e) {
+  } 
+  catch (const exception::Input_error &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+    resp->setStatusCode(k400BadRequest);
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  } 
+  catch (const std::exception &e) {
     auto resp = HttpResponse::newHttpResponse();
     resp->setBody(e.what());
      
@@ -223,10 +234,10 @@ void Classifiers<T>::list(
 
 
 
-  const auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
   try {
 
+    const auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
     auto lang = app_ptr->get_language_by_code(util::String::standardize(p_lang));
 
@@ -251,10 +262,19 @@ void Classifiers<T>::list(
 
 
     } else {
-      resp->setStatusCode(k500InternalServerError);
+      resp->setStatusCode(drogon::k400BadRequest);
       resp->setContentTypeCode(CT_TEXT_HTML);
       resp->setBody("List of classifiers failed ");
     }
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+    catch (const exception::Input_error &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+    resp->setStatusCode(k400BadRequest);
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);
@@ -281,9 +301,9 @@ void Classifiers<T>::list_properties(
     std::string &&p_lang) const {
 
 
-  auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
   try {
+    auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
     auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
 
@@ -334,7 +354,7 @@ void Classifiers<T>::list_properties(
 
 
       } else {
-        resp->setStatusCode(k500InternalServerError);
+        resp->setStatusCode(drogon::k400BadRequest);
         resp->setContentTypeCode(CT_TEXT_HTML);
         resp->setBody("Properties list failed ");
       }
@@ -344,6 +364,15 @@ void Classifiers<T>::list_properties(
       resp->setBody("Classifier not found ");
     }
 
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+  catch (const exception::Input_error &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+    resp->setStatusCode(k400BadRequest);
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);

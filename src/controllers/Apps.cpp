@@ -13,6 +13,7 @@
 #include <model/App_config_loader.h>
 #include <ctlr/Apps.h>
 #include "Base_resource.tpp"
+#include <exception/Exceptions.h>
 
 
 
@@ -26,10 +27,13 @@ using namespace arolios::ctlr ;
 
 template void Base_resource::list<qry::Apps_list>(const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback, std::string&& p_offset, std::string&& p_limit, std::string&& p_sort, std::string&& p_direction,  std::string&& p_lang  ) const ;
 
-  template void Base_resource::create<mttr::App_create>(const HttpRequestPtr &req,
+template void Base_resource::create<mttr::App_create>(const HttpRequestPtr &req,
               std::function<void(const HttpResponsePtr &)> &&callback) const;
+
+template  void Base_resource::read<qry::App_read>(const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback, std::string&& p_elem_id, std::string&& p_usage,  std::string&& p_lang ) const ;
+
  
-   template void Base_resource::update<mttr::App_update>(const HttpRequestPtr &req,
+template void Base_resource::update<mttr::App_update>(const HttpRequestPtr &req,
                 std::function<void(const HttpResponsePtr &)> &&callback,
                 std::string &&p_item_id) const;
 
@@ -45,16 +49,16 @@ void Apps::load_config(const HttpRequestPtr& req,std::function<void (const HttpR
     
 
     MultiPartParser fileUpload;
-
-    if ( fileUpload.parse ( req ) != 0 || fileUpload.getFiles().size() != 1 ) {
-        auto resp = HttpResponse::newHttpResponse();
-        resp->setBody ( "Must only be one file" );
-        resp->setStatusCode ( drogon::k400BadRequest );
-        callback ( resp );
-        return;
-    }
-
     try {
+        if ( fileUpload.parse ( req ) != 0 || fileUpload.getFiles().size() != 1 ) {
+            auto resp = HttpResponse::newHttpResponse();
+            resp->setBody ( "Must only be one file" );
+            resp->setStatusCode ( drogon::k400BadRequest );
+            callback ( resp );
+            return;
+        }
+
+
         auto &file = fileUpload.getFiles() [0];
         auto md5 = file.getMd5();
         auto len = file.fileLength();
@@ -81,6 +85,15 @@ void Apps::load_config(const HttpRequestPtr& req,std::function<void (const HttpR
         resp->setContentTypeCode(CT_TEXT_HTML);
         resp->setBody ("App config loaded successfully");
         //resp->setBody ("The server has calculated the file's MD5 hash to be " + md5 );
+        svru::Response::add_allow_headers (resp, req) ;
+
+        callback ( resp );
+        return;
+    }
+    catch ( const exception::Input_error&  e  ) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody ( e.what());
+        resp->setStatusCode ( k400BadRequest );
         svru::Response::add_allow_headers (resp, req) ;
 
         callback ( resp );

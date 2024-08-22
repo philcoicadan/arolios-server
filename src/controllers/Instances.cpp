@@ -38,9 +38,6 @@ void Instances::update(const HttpRequestPtr &req,
               std::string &&p_inst_id) const {
 
 
-	
-	
-
 	  try {
 
         auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
@@ -62,27 +59,30 @@ void Instances::update(const HttpRequestPtr &req,
         if ( cls ) {
                 std::shared_ptr<omm::Table> elem_lo =  cls->table() ;
 
-            if ( elem_lo ) {
-                    
-                    const int upd_count = json_ptr->get("upd_count",0).asInt();
-                    const std::unordered_map<std::string, std::shared_ptr<const Json::Value>> import_cache;
- 
-                    mttr::Classifier_instance_update iu (cls, *json_ptr, p_inst_id , import_cache, upd_count);
-                    iu.execute ();
-                    
-                    if (iu.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( drogon::k200OK );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance updated " );
-                    } else {
-                        resp->setStatusCode ( k422UnprocessableEntity );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance updating failed " );
-                    }
+                if (elem_lo) {
+
+                  const int upd_count = json_ptr->get("upd_count", 0).asInt();
+                  const std::unordered_map<std::string,
+                                           std::shared_ptr<const Json::Value>>
+                      import_cache;
+
+                  mttr::Classifier_instance_update iu(cls, *json_ptr, p_inst_id,
+                                                      import_cache, upd_count);
+                  iu.execute();
+
+                  if (iu.return_code() == qry::Return_code::OK) {
+                    resp->setStatusCode(drogon::k200OK);
+                    resp->setContentTypeCode(CT_TEXT_HTML);
+                    resp->setBody("Instance updated ");
+                  } else {
+                    resp->setStatusCode(drogon::k400BadRequest);
+                    resp->setContentTypeCode(CT_TEXT_HTML);
+                    resp->setBody("Instance updating failed ");
+                  }
                 } else {
-                    resp->setStatusCode ( k500InternalServerError );
-                    resp->setContentTypeCode ( CT_TEXT_HTML );
-                    resp->setBody ( "Class without relational object " );
+                  resp->setStatusCode(k500InternalServerError);
+                  resp->setContentTypeCode(CT_TEXT_HTML);
+                  resp->setBody("Class without relational object ");
                 }
 
         } else {
@@ -104,7 +104,7 @@ void Instances::update(const HttpRequestPtr &req,
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance updated " );
                     } else {
-                        resp->setStatusCode ( k422UnprocessableEntity );
+                        resp->setStatusCode ( k400BadRequest );
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance updating failed " );
                     }
@@ -120,7 +120,7 @@ void Instances::update(const HttpRequestPtr &req,
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance updated " );
                     } else {
-                        resp->setStatusCode ( k422UnprocessableEntity );
+                        resp->setStatusCode ( k400BadRequest );
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance updating failed " );
                     }
@@ -136,6 +136,15 @@ void Instances::update(const HttpRequestPtr &req,
         svru::Response::add_allow_headers (resp, req) ;
 
         callback ( resp );
+        return;
+    }
+    catch (const exception::Input_error &e) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody(e.what());
+        resp->setStatusCode(k400BadRequest);
+        svru::Response::add_allow_headers(resp, req);
+
+        callback(resp);
         return;
     }
     catch ( const std::exception&  e ) {
@@ -158,13 +167,10 @@ void Instances::deletion(const HttpRequestPtr &req,
                      std::string &&p_inst_id) const {
 
 	
-	
-
-
 	  try {
 
         auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
-    const auto [csf_id, row_id] =
+        const auto [csf_id, row_id] =
         qry::Util::split_instance_id(p_inst_id);
 
         // lookup class at first
@@ -178,80 +184,95 @@ void Instances::deletion(const HttpRequestPtr &req,
 
         auto json_ptr = req->jsonObject() ;
 
-        if ( cls ) {
-                std::shared_ptr<omm::Table> elem_lo =  cls->table() ;
+        if (cls) {
+          std::shared_ptr<omm::Table> elem_lo = cls->table();
 
-            if ( elem_lo ) {
-                    
-                    const int upd_count = (json_ptr == nullptr ) ? 0 : json_ptr->get("upd_count",0).asInt();
- 
-                    mttr::Classifier_instance_delete id (cls, p_inst_id , upd_count);
-                    id.execute ();
-                    
-                    if (id.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( drogon::k200OK );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance deleted " );
-                    } else {
-                        resp->setStatusCode ( k422UnprocessableEntity );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance deletion failed " );
-                    }
-                } else {
-                    resp->setStatusCode ( k500InternalServerError );
-                    resp->setContentTypeCode ( CT_TEXT_HTML );
-                    resp->setBody ( "Class without relational object " );
-                }
+          if (elem_lo) {
+
+            const int upd_count = (json_ptr == nullptr)
+                                      ? 0
+                                      : json_ptr->get("upd_count", 0).asInt();
+
+            mttr::Classifier_instance_delete id(cls, p_inst_id, upd_count);
+            id.execute();
+
+            if (id.return_code() == qry::Return_code::OK) {
+              resp->setStatusCode(drogon::k200OK);
+              resp->setContentTypeCode(CT_TEXT_HTML);
+              resp->setBody("Instance deleted ");
+            } else {
+              resp->setStatusCode(drogon::k400BadRequest);
+              resp->setContentTypeCode(CT_TEXT_HTML);
+              resp->setBody("Instance deletion failed ");
+            }
+          } else {
+            resp->setStatusCode(k500InternalServerError);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Class without relational object ");
+          }
 
         } else {
-const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
-          std::to_string(csf_id));
-                      if (assoc) {
-                std::shared_ptr<omm::Table> elem_lo =  assoc->table() ;
-                const int upd_count = (json_ptr == nullptr ) ? 0 : json_ptr->get("upd_count",0).asInt();
+          const auto assoc =
+              om_ptr->find_domain_element_by_id<omm::Association>(
+                  std::to_string(csf_id));
+          if (assoc) {
+            std::shared_ptr<omm::Table> elem_lo = assoc->table();
+            const int upd_count = (json_ptr == nullptr)
+                                      ? 0
+                                      : json_ptr->get("upd_count", 0).asInt();
 
-                if ( elem_lo ) {
-                    // additional table for association (binary association N-M)            
+            if (elem_lo) {
+              // additional table for association (binary association N-M)
 
-                    mttr::Classifier_instance_delete id (assoc, p_inst_id, upd_count);
-                    id.execute ();
-                    
-                    if (id.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( k200OK);
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance deleted " );
-                    } else {
-                        resp->setStatusCode ( k422UnprocessableEntity );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance deletion failed " );
-                    }
-                    
-                } else { // no table (binary association 1-N or 1-1), one class instance must be updated
+              mttr::Classifier_instance_delete id(assoc, p_inst_id, upd_count);
+              id.execute();
 
-                    mttr::Class_instance_association_delete iad (assoc, p_inst_id, upd_count);
-                    iad.execute ();
-                    
-                    if (iad.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( k200OK );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance deleted " );
-                    } else {
-                        resp->setStatusCode ( k422UnprocessableEntity );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance deletion failed " );
-                    }
-    
-                }
+              if (id.return_code() == qry::Return_code::OK) {
+                resp->setStatusCode(k200OK);
+                resp->setContentTypeCode(CT_TEXT_HTML);
+                resp->setBody("Instance deleted ");
+              } else {
+                resp->setStatusCode(k400BadRequest);
+                resp->setContentTypeCode(CT_TEXT_HTML);
+                resp->setBody("Instance deletion failed ");
+              }
 
-            } else {
-                resp->setStatusCode ( k400BadRequest );
-                resp->setContentTypeCode ( CT_TEXT_HTML );
-                resp->setBody ( "Classifier not found " );
+            } else { // no table (binary association 1-N or 1-1), one class
+                     // instance must be updated
+
+              mttr::Class_instance_association_delete iad(assoc, p_inst_id,
+                                                          upd_count);
+              iad.execute();
+
+              if (iad.return_code() == qry::Return_code::OK) {
+                resp->setStatusCode(k200OK);
+                resp->setContentTypeCode(CT_TEXT_HTML);
+                resp->setBody("Instance deleted ");
+              } else {
+                resp->setStatusCode(k400BadRequest);
+                resp->setContentTypeCode(CT_TEXT_HTML);
+                resp->setBody("Instance deletion failed ");
+              }
             }
+
+          } else {
+            resp->setStatusCode(k400BadRequest);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Classifier not found ");
+          }
         }
         svru::Response::add_allow_headers (resp, req) ;
 
         callback ( resp );
+        return;
+    }
+    catch (const exception::Input_error &e) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody(e.what());
+        resp->setStatusCode(k400BadRequest);
+        svru::Response::add_allow_headers(resp, req);
+
+        callback(resp);
         return;
     }
     catch ( const std::exception&  e ) {
@@ -273,10 +294,8 @@ const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
             std::string &&p_lang) const {
 
 
-	
-	auto app_ptr = common::Singleton<common::App_info>::instance().object();
-
 	  try {
+	    auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
         auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
        
@@ -303,68 +322,85 @@ const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
        
       
         auto resp = HttpResponse::newHttpResponse();
-        
 
-        if ( cls ) {
-            std::shared_ptr<omm::Table> elem_lo =  cls->table() ;
+        if (cls) {
+          std::shared_ptr<omm::Table> elem_lo = cls->table();
 
-            if ( elem_lo ) {
-                
-                        //add filter to select only active (non-deleted) instance
-                const std::shared_ptr<const qry::Instance_filter> td_filter = std::make_shared<qry::Instance_filter>("trashed_date", "=", "'epoch'") ;
-                const std::vector<std::shared_ptr<const qry::Instance_filter>> filters = { td_filter };
-                
-                qry::Class_instance_read ir ( cls, p_inst_id, read_mode, filters, lang );
-                ir.execute ();
+          if (elem_lo) {
 
-                if ( ir.return_code () == qry::Return_code::OK ) {
-                    const Json::Value & json = ir.return_json();
+            // add filter to select only active (non-deleted) instance
+            const std::shared_ptr<const qry::Instance_filter> td_filter =
+                std::make_shared<qry::Instance_filter>("trashed_date", "=",
+                                                       "'epoch'");
+            const std::vector<std::shared_ptr<const qry::Instance_filter>>
+                filters = {td_filter};
 
-                    resp = HttpResponse::newHttpJsonResponse ( json );
+            qry::Class_instance_read ir(cls, p_inst_id, read_mode, filters,
+                                        lang);
+            ir.execute();
 
-                } else {
-                    resp->setStatusCode ( drogon::k422UnprocessableEntity );
-                    resp->setContentTypeCode ( CT_TEXT_HTML );
-                    resp->setBody ( "Instance reading failed " );
-                }
+            if (ir.return_code() == qry::Return_code::OK) {
+              const Json::Value &json = ir.return_json();
+
+              resp = HttpResponse::newHttpJsonResponse(json);
+
             } else {
-                resp->setStatusCode ( k500InternalServerError );
-                resp->setContentTypeCode ( CT_TEXT_HTML );
-                resp->setBody ( "Class without relational object " );
+              resp->setStatusCode(drogon::k400BadRequest);
+              resp->setContentTypeCode(CT_TEXT_HTML);
+              resp->setBody("Instance reading failed ");
             }
+          } else {
+            resp->setStatusCode(k500InternalServerError);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Class without relational object ");
+          }
 
         } else {
-      const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
-          std::to_string(csf_id)); 
-                     if ( assoc ) {
+          const auto assoc =
+              om_ptr->find_domain_element_by_id<omm::Association>(
+                  std::to_string(csf_id));
+          if (assoc) {
 
-                                        //add filter to select only active (non-deleted) instance
-                const std::shared_ptr<const qry::Instance_filter> td_filter = std::make_shared<qry::Instance_filter>("trashed_date", "=", "'epoch'") ;
-                const std::vector<std::shared_ptr<const qry::Instance_filter>> filters = { td_filter };
-                
-                qry::Association_instance_read ir ( assoc, p_inst_id, read_mode , filters, lang);
-                ir.execute ();
+            // add filter to select only active (non-deleted) instance
+            const std::shared_ptr<const qry::Instance_filter> td_filter =
+                std::make_shared<qry::Instance_filter>("trashed_date", "=",
+                                                       "'epoch'");
+            const std::vector<std::shared_ptr<const qry::Instance_filter>>
+                filters = {td_filter};
 
-                if ( ir.return_code () == qry::Return_code::OK ) {
-                    const Json::Value & json = ir.return_json();
+            qry::Association_instance_read ir(assoc, p_inst_id, read_mode,
+                                              filters, lang);
+            ir.execute();
 
-                    resp = HttpResponse::newHttpJsonResponse ( json );
+            if (ir.return_code() == qry::Return_code::OK) {
+              const Json::Value &json = ir.return_json();
 
-                } else {
-                    resp->setStatusCode ( k422UnprocessableEntity );
-                    resp->setContentTypeCode ( CT_TEXT_HTML );
-                    resp->setBody ( "Instance reading failed " );
-                }
+              resp = HttpResponse::newHttpJsonResponse(json);
 
             } else {
-                resp->setStatusCode ( k400BadRequest );
-                resp->setContentTypeCode ( CT_TEXT_HTML );
-                resp->setBody ( "Classifier not found " );
+              resp->setStatusCode(k400BadRequest);
+              resp->setContentTypeCode(CT_TEXT_HTML);
+              resp->setBody("Instance reading failed ");
             }
+
+          } else {
+            resp->setStatusCode(k400BadRequest);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Classifier not found ");
+          }
         }
         svru::Response::add_allow_headers (resp, req) ;
 
         callback ( resp );
+        return;
+    }
+    catch (const exception::Input_error &e) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody(e.what());
+        resp->setStatusCode(k400BadRequest);
+        svru::Response::add_allow_headers(resp, req);
+
+        callback(resp);
         return;
     }
     catch ( const std::exception&  e ) {
@@ -390,14 +426,15 @@ void
                        std::string &&p_lang) const {
     
     
-       auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
     try {
+        auto app_ptr = common::Singleton<common::App_info>::instance().object();
+
         auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
 
         auto lang = app_ptr->get_language_by_code(p_lang);
 
-    auto list_params =
+        auto list_params =
         svru::Request::check_list_params(p_sort, p_direction, p_limit, p_offset);
 
        
@@ -429,7 +466,7 @@ void
        
         // lookup class
         // if inheritance, the class can have sub-classes
-    const auto [csf_id, row_id] =
+        const auto [csf_id, row_id] =
         qry::Util::split_instance_id(p_inst_id);
             auto cls =
         om_ptr->find_domain_element_by_id<omm::Class>(std::to_string(csf_id));
@@ -455,7 +492,7 @@ void
 
 
                     } else {
-                        resp->setStatusCode ( drogon::k422UnprocessableEntity );
+                        resp->setStatusCode ( drogon::k400BadRequest );
                         resp->setContentTypeCode ( CT_TEXT_HTML );
                         resp->setBody ( "Instance associations list failed " );
                     }
@@ -474,6 +511,15 @@ void
         svru::Response::add_allow_headers (resp, req) ;
 
         callback ( resp );
+        return;
+    }
+    catch (const exception::Input_error &e) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody(e.what());
+        resp->setStatusCode(k400BadRequest);
+        svru::Response::add_allow_headers(resp, req);
+
+        callback(resp);
         return;
     }
     catch ( const std::exception&  e ) {
@@ -496,19 +542,19 @@ void Instances::import(const HttpRequestPtr &req,
 
 
   MultiPartParser fileUpload;
+ try {
+    if (fileUpload.parse(req) != 0 || fileUpload.getFiles().size() != 1) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody("Must only be one file");
+        resp->setStatusCode(drogon::k400BadRequest);
+        svru::Response::add_allow_headers(resp, req);
 
-  if (fileUpload.parse(req) != 0 || fileUpload.getFiles().size() != 1) {
-    auto resp = HttpResponse::newHttpResponse();
-    resp->setBody("Must only be one file");
-    resp->setStatusCode(drogon::k400BadRequest);
-    svru::Response::add_allow_headers(resp, req);
+        callback(resp);
 
-    callback(resp);
+        return;
+    }
 
-    return;
-  }
-
-  try {
+ 
     auto &file = fileUpload.getFiles()[0];
     auto md5 = file.getMd5();
     auto len = file.fileLength();
@@ -516,37 +562,42 @@ void Instances::import(const HttpRequestPtr &req,
     auto name = file.getFileName();
     auto type = file.getFileType();
 
-
-
     file.save();
     std::cout << "INFO: The uploaded file has been saved to the ./uploads "
-                "directory";
+                 "directory";
 
-    mttr::Data_import importer(
-                               drogon::app().getUploadPath() + '/' + name);
+    mttr::Data_import importer(drogon::app().getUploadPath() + '/' + name);
     importer.execute();
 
     auto resp = HttpResponse::newHttpResponse();
     resp->setContentTypeCode(CT_TEXT_HTML);
 
     if (importer.return_code() == qry::Return_code::OK) {
-        resp->setStatusCode(drogon::k200OK);
-        resp->setBody("File imported ");
-    }
-    else {
-        resp->setStatusCode(drogon::k422UnprocessableEntity);
-        resp->setBody("File imported with errors");
+      resp->setStatusCode(drogon::k200OK);
+      resp->setBody("File imported ");
+    } else {
+      resp->setStatusCode(drogon::k400BadRequest);
+      resp->setBody("File imported with errors");
     }
 
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);
     return;
-  }
+  } 
+  catch (const exception::Input_error &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+    resp->setStatusCode(k400BadRequest);
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  } 
   catch (const std::exception &e) {
     auto resp = HttpResponse::newHttpResponse();
     resp->setBody(e.what());
-     
+
     resp->setStatusCode(k500InternalServerError);
     svru::Response::add_allow_headers(resp, req);
 
@@ -565,16 +616,17 @@ void Instances::import(const HttpRequestPtr &req,
 
   MultiPartParser fileUpload;
 
-  if (fileUpload.parse(req) != 0 || fileUpload.getFiles().size() > 2) {
-    auto resp = HttpResponse::newHttpResponse();
-    resp->setBody("One or two files are expected");
-    resp->setStatusCode(drogon::k400BadRequest);
-    svru::Response::add_allow_headers(resp, req);
-    callback(resp);
-    return;
-  }
 
   try {
+    if (fileUpload.parse(req) != 0 || fileUpload.getFiles().size() > 2) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody("One or two files are expected");
+        resp->setStatusCode(drogon::k400BadRequest);
+        svru::Response::add_allow_headers(resp, req);
+        callback(resp);
+        return;
+    }
+
     std::string names[2];
     const int nb_files = fileUpload.getFiles().size();
     for (int i = 0; i < nb_files; ++i) {
@@ -610,7 +662,7 @@ void Instances::import(const HttpRequestPtr &req,
 
 
       } else {
-        resp->setStatusCode(drogon::k422UnprocessableEntity);
+        resp->setStatusCode(drogon::k400BadRequest);
         resp->setContentTypeCode(CT_TEXT_HTML);
         resp->setBody("Query failed ");
       }
@@ -625,7 +677,17 @@ void Instances::import(const HttpRequestPtr &req,
     callback(resp);
     return;
 
-  } catch (const std::exception &e) {
+  } 
+  catch (const exception::Input_error &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+    resp->setStatusCode(k400BadRequest);
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+  catch (const std::exception &e) {
     auto resp = HttpResponse::newHttpResponse();
     resp->setBody(e.what());
      

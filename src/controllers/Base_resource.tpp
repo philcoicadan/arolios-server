@@ -44,13 +44,22 @@ template < typename TC> void Base_resource::create(const HttpRequestPtr& req,std
 
             resp = HttpResponse::newHttpJsonResponse ( ac.return_json() );
         } else {
-            resp->setStatusCode ( drogon::k422UnprocessableEntity );
+            resp->setStatusCode ( drogon::k400BadRequest);
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Resource creation failed " );
         }
         
         svru::Response::add_allow_headers (resp, req) ;
 
+
+        callback ( resp );
+        return;
+    }
+    catch ( const exception::Input_error&  e ) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody ( e.what() );
+        resp->setStatusCode ( k400BadRequest);
+        svru::Response::add_allow_headers ( resp, req ) ;
 
         callback ( resp );
         return;
@@ -91,13 +100,22 @@ template <typename TL> void Base_resource::list (const HttpRequestPtr& req,std::
             resp = HttpResponse::newHttpJsonResponse ( json );
 
         } else {
-            resp->setStatusCode ( drogon::k422UnprocessableEntity );
+            resp->setStatusCode ( drogon::k400BadRequest );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Resource list failed " );
         }
         
         svru::Response::add_allow_headers (resp, req) ;
 
+
+        callback ( resp );
+        return;
+    }
+    catch ( const exception::Input_error&  e ) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody ( e.what() );
+        resp->setStatusCode ( k400BadRequest);
+        svru::Response::add_allow_headers ( resp, req ) ;
 
         callback ( resp );
         return;
@@ -115,14 +133,14 @@ template <typename TL> void Base_resource::list (const HttpRequestPtr& req,std::
 
 template <typename TU> void Base_resource::read(const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback, std::string&& p_elem_id, std::string&& p_usage,  std::string&& p_lang ) const{
 
-            auto app_ptr = common::Singleton<common::App_info>::instance().object();
+           
+        
+    try {
+        auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
-            auto elem_id = svru::Request::check_element_id (p_elem_id);
+        auto elem_id = svru::Request::check_element_id (p_elem_id);
 
     
-        
-        try {
-
 
         auto lang = app_ptr->get_language_by_code(util::String::standardize (p_lang));
         
@@ -146,13 +164,22 @@ template <typename TU> void Base_resource::read(const HttpRequestPtr& req,std::f
                 resp = HttpResponse::newHttpJsonResponse ( json );
 
         } else {
-            resp->setStatusCode ( drogon::k422UnprocessableEntity );
+            resp->setStatusCode ( drogon::k400BadRequest );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Resource reading failed " );
         }
         
         svru::Response::add_allow_headers (resp, req) ;
 
+
+        callback ( resp );
+        return;
+    }
+    catch ( const exception::Input_error&  e ) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody ( e.what() );
+        resp->setStatusCode ( k400BadRequest);
+        svru::Response::add_allow_headers ( resp, req ) ;
 
         callback ( resp );
         return;
@@ -171,12 +198,12 @@ template <typename TU> void Base_resource::read(const HttpRequestPtr& req,std::f
 
 template <typename TU> void Base_resource::update(const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback, std::string&& p_elem_id) const{
 
-            auto elem_id = svru::Request::check_element_id (p_elem_id);
 
     
         
-        try {
+    try {
 
+            auto elem_id = svru::Request::check_element_id (p_elem_id);
 
 
         auto resp = HttpResponse::newHttpResponse();
@@ -188,15 +215,24 @@ template <typename TU> void Base_resource::update(const HttpRequestPtr& req,std:
         if ( au.return_code () == qry::Return_code::OK ) {
             resp->setStatusCode ( drogon::k200OK );
             resp->setContentTypeCode ( CT_TEXT_HTML );
-            resp->setBody ( "App updated " );
+            resp->setBody ( "Resource updated " );
         } else {
-            resp->setStatusCode ( k422UnprocessableEntity );
+            resp->setStatusCode ( drogon::k400BadRequest );
             resp->setContentTypeCode ( CT_TEXT_HTML );
-            resp->setBody ( "App updating failed " );
+            resp->setBody ( "Resource updating failed " );
         }
         
         svru::Response::add_allow_headers (resp, req) ;
 
+
+        callback ( resp );
+        return;
+    }
+    catch ( const exception::Input_error&  e ) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody ( e.what() );
+        resp->setStatusCode ( k400BadRequest);
+        svru::Response::add_allow_headers ( resp, req ) ;
 
         callback ( resp );
         return;
@@ -216,12 +252,12 @@ template <typename TU> void Base_resource::update(const HttpRequestPtr& req,std:
 template <typename TD> void Base_resource::deletion (const HttpRequestPtr& req,std::function<void (const HttpResponsePtr &)> &&callback, std::string&& p_elem_id) const{
     
 
-    auto elem_id = svru::Request::check_element_id (p_elem_id);
 
     
           
     try {
 
+        auto elem_id = svru::Request::check_element_id (p_elem_id);
 
 
         auto resp = HttpResponse::newHttpResponse();
@@ -233,13 +269,22 @@ template <typename TD> void Base_resource::deletion (const HttpRequestPtr& req,s
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Resource deleted " );
         } else {
-            resp->setStatusCode ( k422UnprocessableEntity );
+            resp->setStatusCode ( drogon::k400BadRequest );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "Resource deletion failed " );
         }
         
         svru::Response::add_allow_headers (resp, req) ;
 
+
+        callback ( resp );
+        return;
+    }
+    catch ( const exception::Input_error&  e ) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody ( e.what() );
+        resp->setStatusCode ( k400BadRequest);
+        svru::Response::add_allow_headers ( resp, req ) ;
 
         callback ( resp );
         return;

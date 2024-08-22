@@ -36,9 +36,9 @@ void Trash::list_instances(
 
 
 
-  auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
   try {
+    auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
 
     auto lang = app_ptr->get_language_by_code(p_lang);
@@ -64,11 +64,20 @@ void Trash::list_instances(
 
 
     } else {
-      resp->setStatusCode(k500InternalServerError);
+      resp->setStatusCode(drogon::k400BadRequest);
       resp->setContentTypeCode(CT_TEXT_HTML);
       resp->setBody("Trash list failed ");
     }
 
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+  catch (const exception::Input_error &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+    resp->setStatusCode(k400BadRequest);
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);
@@ -93,9 +102,9 @@ void Trash::recover_instance(
 
 
   
-  auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
   try {
+    auto app_ptr = common::Singleton<common::App_info>::instance().object();
 
     auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
 
@@ -135,7 +144,7 @@ void Trash::recover_instance(
           resp->setContentTypeCode(CT_TEXT_HTML);
           resp->setBody("Instance recovered ");
         } else {
-          resp->setStatusCode(k422UnprocessableEntity);
+          resp->setStatusCode(drogon::k400BadRequest);
           resp->setContentTypeCode(CT_TEXT_HTML);
           resp->setBody("Instance restoring failed ");
         }
@@ -165,7 +174,7 @@ void Trash::recover_instance(
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Instance recovered ");
           } else {
-            resp->setStatusCode(k422UnprocessableEntity);
+            resp->setStatusCode(k400BadRequest);
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Instance restoring failed ");
           }
@@ -182,7 +191,7 @@ void Trash::recover_instance(
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Instance recovered ");
           } else {
-            resp->setStatusCode(k422UnprocessableEntity);
+            resp->setStatusCode(k400BadRequest);
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Instance restoring failed ");
           }
@@ -194,6 +203,15 @@ void Trash::recover_instance(
         resp->setBody("Classifier not found ");
       }
     }
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+  catch (const exception::Input_error &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+    resp->setStatusCode(k400BadRequest);
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);
@@ -258,7 +276,7 @@ void Trash::eliminate_instance(
           resp->setContentTypeCode(CT_TEXT_HTML);
           resp->setBody("Instance deleted definitively");
         } else {
-          resp->setStatusCode(k422UnprocessableEntity);
+          resp->setStatusCode(drogon::k400BadRequest);
           resp->setContentTypeCode(CT_TEXT_HTML);
           resp->setBody("Instance definitive deletion failed ");
         }
@@ -288,7 +306,7 @@ void Trash::eliminate_instance(
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Instance deleted definitively");
           } else {
-            resp->setStatusCode(k422UnprocessableEntity);
+            resp->setStatusCode(k400BadRequest);
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Instance definitive deletion failed ");
           }
@@ -305,7 +323,7 @@ void Trash::eliminate_instance(
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Instance deleted definitively");
           } else {
-            resp->setStatusCode(k422UnprocessableEntity);
+            resp->setStatusCode(k400BadRequest);
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Instance definitive deletion failed ");
           }
@@ -317,6 +335,15 @@ void Trash::eliminate_instance(
         resp->setBody("Classifier not found ");
       }
     }
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+  catch (const exception::Input_error &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+    resp->setStatusCode(k400BadRequest);
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);
@@ -356,11 +383,20 @@ void Trash::empty(
       resp->setBody("Trash emptying ended successfully");
 
     } else {
-      resp->setStatusCode(k500InternalServerError);
+      resp->setStatusCode(drogon::k400BadRequest);
       resp->setContentTypeCode(CT_TEXT_HTML);
       resp->setBody("Trash emptying failed ");
     }
 
+    svru::Response::add_allow_headers(resp, req);
+
+    callback(resp);
+    return;
+  }
+  catch (const exception::Input_error &e) {
+    auto resp = HttpResponse::newHttpResponse();
+    resp->setBody(e.what());
+    resp->setStatusCode(k400BadRequest);
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);

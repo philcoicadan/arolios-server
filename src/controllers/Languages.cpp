@@ -23,14 +23,12 @@ using namespace arolios;
 using namespace arolios::ctlr;
 
 void Languages::list ( const HttpRequestPtr& req,std::function<void ( const HttpResponsePtr & ) > &&callback, std::string&& p_filters) const {
-    
-  
-            
-    const auto app_ptr = common::Singleton<common::App_info>::instance().object();
+        
 
     try {
 
-        
+        const auto app_ptr = common::Singleton<common::App_info>::instance().object();
+
         std::string sort = "code";
 
 
@@ -54,13 +52,22 @@ void Languages::list ( const HttpRequestPtr& req,std::function<void ( const Http
 
 
         } else {
-            resp->setStatusCode ( drogon::k422UnprocessableEntity );
+            resp->setStatusCode ( drogon::k400BadRequest );
             resp->setContentTypeCode ( CT_TEXT_HTML );
             resp->setBody ( "languages list failed " );
         }
         svru::Response::add_allow_headers (resp, req) ;
 
         callback ( resp );
+        return;
+    }
+    catch (const exception::Input_error &e) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody(e.what());
+        resp->setStatusCode(k400BadRequest);
+        svru::Response::add_allow_headers(resp, req);
+
+        callback(resp);
         return;
     }
     catch ( const std::exception&  e ) {

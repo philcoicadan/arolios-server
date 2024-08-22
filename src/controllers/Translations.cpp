@@ -10,6 +10,7 @@
 #include <model/Model_tlt_loader.h>
 #include <svru/Request.h>
 #include <svru/Response.h>
+#include <exception/Exceptions.h>
 
 
 
@@ -24,17 +25,17 @@ void Translations::load(const HttpRequestPtr& req,std::function<void (const Http
     
 
     MultiPartParser fileUpload;
-
-    if ( fileUpload.parse ( req ) != 0 || fileUpload.getFiles().size() != 1 ) {
-        auto resp = HttpResponse::newHttpResponse();
-        resp->setBody ( "Must only be one file" );
-        resp->setStatusCode ( drogon::k400BadRequest );
-        svru::Response::add_allow_headers (resp, req) ;
-        callback ( resp );
-        return;
-    }
-
     try {
+        if ( fileUpload.parse ( req ) != 0 || fileUpload.getFiles().size() != 1 ) {
+            auto resp = HttpResponse::newHttpResponse();
+            resp->setBody ( "Must only be one file" );
+            resp->setStatusCode ( drogon::k400BadRequest );
+            svru::Response::add_allow_headers (resp, req) ;
+            callback ( resp );
+            return;
+        }
+
+
         auto &file = fileUpload.getFiles() [0];
         auto md5 = file.getMd5();
         auto len = file.fileLength();
@@ -60,7 +61,16 @@ void Translations::load(const HttpRequestPtr& req,std::function<void (const Http
 
         callback ( resp );
         return;
-    } 
+    }
+    catch (const exception::Input_error &e) {
+        auto resp = HttpResponse::newHttpResponse();
+        resp->setBody(e.what());
+        resp->setStatusCode(k400BadRequest);
+        svru::Response::add_allow_headers(resp, req);
+
+        callback(resp);
+        return;
+    }
     catch ( const std::exception&  e  ) {
         auto resp = HttpResponse::newHttpResponse();
         resp->setBody ( e.what());
