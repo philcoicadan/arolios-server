@@ -5,8 +5,7 @@
  *
  */
 #include <ctlr/Instances.h>
-#include <mttr/Class_instance_association_delete.h>
-#include <mttr/Class_instance_association_update.h>
+#include <mttr/Classifier_instance_factory.h>
 #include <mttr/Classifier_instance_delete.h>
 #include <mttr/Classifier_instance_update.h>
 #include <mttr/Data_import.h>
@@ -45,94 +44,45 @@ void Instances::update(const HttpRequestPtr &req,
         const auto [csf_id, row_id] =
         qry::Util::split_instance_id(p_inst_id);           
 
-        // lookup class at first
+        // lookup classifier
 
-        auto cls =
-        om_ptr->find_domain_element_by_id<omm::Class>(std::to_string(csf_id));
- 
+        auto csf =
+        om_ptr->find_domain_element_by_id<omm::Classifier>(std::to_string(csf_id));
+  
 
         auto resp = HttpResponse::newHttpResponse();
                 
 
         auto json_ptr = req->jsonObject() ;
 
-        if ( cls ) {
-                std::shared_ptr<omm::Table> elem_lo =  cls->table() ;
+        if (csf) {
+          const int upd_count = json_ptr->get("upd_count", 0).asInt();
 
-                if (elem_lo) {
+          auto iu = mttr::Classifier_instance_factory::instance().make_update(
+              csf, *json_ptr, p_inst_id, upd_count);
+          if (iu) {
+            iu->execute();
 
-                  const int upd_count = json_ptr->get("upd_count", 0).asInt();
-                  const std::unordered_map<std::string,
-                                           std::shared_ptr<const Json::Value>>
-                      import_cache;
-
-                  mttr::Classifier_instance_update iu(cls, *json_ptr, p_inst_id,
-                                                      import_cache, upd_count);
-                  iu.execute();
-
-                  if (iu.return_code() == qry::Return_code::OK) {
-                    resp->setStatusCode(drogon::k200OK);
-                    resp->setContentTypeCode(CT_TEXT_HTML);
-                    resp->setBody("Instance updated ");
-                  } else {
-                    resp->setStatusCode(drogon::k400BadRequest);
-                    resp->setContentTypeCode(CT_TEXT_HTML);
-                    resp->setBody("Instance updating failed ");
-                  }
-                } else {
-                  resp->setStatusCode(k500InternalServerError);
-                  resp->setContentTypeCode(CT_TEXT_HTML);
-                  resp->setBody("Class without relational object ");
-                }
-
-        } else {
-            const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
-          std::to_string(csf_id));
-            if (assoc) {
-                std::shared_ptr<omm::Table> elem_lo =  assoc->table() ;
-                const int upd_count = json_ptr->get("upd_count",0).asInt();
-
-                if ( elem_lo ) {
-                    // additional table for association (binary association N-M)            
-                    const std::unordered_map<std::string, std::shared_ptr<const Json::Value>> import_cache;
-
-                    mttr::Classifier_instance_update iu (assoc, *json_ptr, p_inst_id, import_cache, upd_count);
-                    iu.execute ();
-                    
-                    if (iu.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( k200OK );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance updated " );
-                    } else {
-                        resp->setStatusCode ( k400BadRequest );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance updating failed " );
-                    }
-                    
-                } else { // no table (binary association 1-N or 1-1), one class instance must be updated
-                    const std::unordered_map<std::string, std::shared_ptr<const Json::Value>> import_cache;
-
-                    mttr::Class_instance_association_update iau (assoc, *json_ptr, p_inst_id, import_cache, upd_count);
-                    iau.execute ();
-                    
-                    if (iau.return_code () == qry::Return_code::OK) {
-                        resp->setStatusCode ( k200OK );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance updated " );
-                    } else {
-                        resp->setStatusCode ( k400BadRequest );
-                        resp->setContentTypeCode ( CT_TEXT_HTML );
-                        resp->setBody ( "Instance updating failed " );
-                    }
-    
-                }
-
+            if (iu->return_code() == qry::Return_code::OK) {
+              resp->setStatusCode(drogon::k200OK);
+              resp->setContentTypeCode(CT_TEXT_HTML);
+              resp->setBody("Instance updated ");
             } else {
-                resp->setStatusCode ( k400BadRequest );
-                resp->setContentTypeCode ( CT_TEXT_HTML );
-                resp->setBody ( "Classifier not found " );
+              resp->setStatusCode(drogon::k400BadRequest);
+              resp->setContentTypeCode(CT_TEXT_HTML);
+              resp->setBody("Instance updating failed ");
             }
+          } else {
+            resp->setStatusCode(k500InternalServerError);
+            resp->setContentTypeCode(CT_TEXT_HTML);
+            resp->setBody("Classifier without relational object ");
+          }
+        } else {
+          resp->setStatusCode(k400BadRequest);
+          resp->setContentTypeCode(CT_TEXT_HTML);
+          resp->setBody("Classifier not found ");
         }
+
         svru::Response::add_allow_headers (resp, req) ;
 
         callback ( resp );
@@ -173,30 +123,26 @@ void Instances::deletion(const HttpRequestPtr &req,
         const auto [csf_id, row_id] =
         qry::Util::split_instance_id(p_inst_id);
 
-        // lookup class at first
+        // lookup classifier
 
-         auto cls =
-        om_ptr->find_domain_element_by_id<omm::Class>(std::to_string(csf_id));
- 
+        auto csf =
+        om_ptr->find_domain_element_by_id<omm::Classifier>(std::to_string(csf_id));
+  
 
         auto resp = HttpResponse::newHttpResponse();
                 
 
         auto json_ptr = req->jsonObject() ;
 
-        if (cls) {
-          std::shared_ptr<omm::Table> elem_lo = cls->table();
+        if (csf) {
+          const int upd_count = json_ptr->get("upd_count", 0).asInt();
 
-          if (elem_lo) {
+          auto id = mttr::Classifier_instance_factory::instance().make_delete(
+              csf, p_inst_id, upd_count);
+          if (id) {
+            id->execute();
 
-            const int upd_count = (json_ptr == nullptr)
-                                      ? 0
-                                      : json_ptr->get("upd_count", 0).asInt();
-
-            mttr::Classifier_instance_delete id(cls, p_inst_id, upd_count);
-            id.execute();
-
-            if (id.return_code() == qry::Return_code::OK) {
+            if (id->return_code() == qry::Return_code::OK) {
               resp->setStatusCode(drogon::k200OK);
               resp->setContentTypeCode(CT_TEXT_HTML);
               resp->setBody("Instance deleted ");
@@ -208,59 +154,14 @@ void Instances::deletion(const HttpRequestPtr &req,
           } else {
             resp->setStatusCode(k500InternalServerError);
             resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Class without relational object ");
+            resp->setBody("Classifier without relational object ");
           }
-
         } else {
-          const auto assoc =
-              om_ptr->find_domain_element_by_id<omm::Association>(
-                  std::to_string(csf_id));
-          if (assoc) {
-            std::shared_ptr<omm::Table> elem_lo = assoc->table();
-            const int upd_count = (json_ptr == nullptr)
-                                      ? 0
-                                      : json_ptr->get("upd_count", 0).asInt();
-
-            if (elem_lo) {
-              // additional table for association (binary association N-M)
-
-              mttr::Classifier_instance_delete id(assoc, p_inst_id, upd_count);
-              id.execute();
-
-              if (id.return_code() == qry::Return_code::OK) {
-                resp->setStatusCode(k200OK);
-                resp->setContentTypeCode(CT_TEXT_HTML);
-                resp->setBody("Instance deleted ");
-              } else {
-                resp->setStatusCode(k400BadRequest);
-                resp->setContentTypeCode(CT_TEXT_HTML);
-                resp->setBody("Instance deletion failed ");
-              }
-
-            } else { // no table (binary association 1-N or 1-1), one class
-                     // instance must be updated
-
-              mttr::Class_instance_association_delete iad(assoc, p_inst_id,
-                                                          upd_count);
-              iad.execute();
-
-              if (iad.return_code() == qry::Return_code::OK) {
-                resp->setStatusCode(k200OK);
-                resp->setContentTypeCode(CT_TEXT_HTML);
-                resp->setBody("Instance deleted ");
-              } else {
-                resp->setStatusCode(k400BadRequest);
-                resp->setContentTypeCode(CT_TEXT_HTML);
-                resp->setBody("Instance deletion failed ");
-              }
-            }
-
-          } else {
-            resp->setStatusCode(k400BadRequest);
-            resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Classifier not found ");
-          }
+          resp->setStatusCode(k400BadRequest);
+          resp->setContentTypeCode(CT_TEXT_HTML);
+          resp->setBody("Classifier not found ");
         }
+        
         svru::Response::add_allow_headers (resp, req) ;
 
         callback ( resp );

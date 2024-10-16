@@ -20,11 +20,9 @@
 #include <qry/Instance_filter.h>
 #include <util/String.h>
 #include <qry/Return_code.h>
-#include <mttr/Class_instance_association_create.h>
+#include <mttr/Classifier_instance_factory.h>
 #include <mttr/Classifier_instance_create.h>
 #include <memory>
-#include <mttr/Classifier_instance_delete.h>
-#include <mttr/Classifier_instance_update.h>
 #include <svru/Request.h>
 #include <svru/Response.h>
 #include <svru/Request.h>
@@ -149,55 +147,40 @@ void Classifiers<T>::create_instance(
     
 
     auto json_ptr = req->jsonObject();
-    
+
     if (elem) {
       if (!elem->is_abstract()) {
-        std::shared_ptr<omm::Table> elem_lo = elem->table();
-        if (elem_lo) {
-          // additional table for association (binary association N-M)
-          const std::unordered_map<std::string, std::shared_ptr<const Json::Value>>
-              import_cache;
-          mttr::Classifier_instance_create ic(elem,*json_ptr,
-                                              import_cache);
-          ic.execute();
 
-          if (ic.return_code() == qry::Return_code::OK) {
-            resp = HttpResponse::newHttpJsonResponse(ic.return_json());
+        auto ic = mttr::Classifier_instance_factory::instance().make_create(
+            elem, *json_ptr);
+
+        if (ic) {
+          ic->execute();
+
+          if (ic->return_code() == qry::Return_code::OK) {
+            resp = HttpResponse::newHttpJsonResponse(ic->return_json());
           } else {
             resp->setStatusCode(drogon::k400BadRequest);
             resp->setContentTypeCode(CT_TEXT_HTML);
             resp->setBody("Classifier instance creation failed ");
           }
-        } else { // no table (binary association 1-N or 1-1), one class instance
-                 // must be updated
-          const std::unordered_map<std::string, std::shared_ptr<const Json::Value>>
-              import_cache;
-          const auto assoc = std::dynamic_pointer_cast<const omm::Association>(elem);
-          mttr::Class_instance_association_create iac(assoc, *json_ptr,
-                                                      import_cache);
-          iac.execute();
-
-          if (iac.return_code() == qry::Return_code::OK) {
-
-            resp = HttpResponse::newHttpJsonResponse(iac.return_json());
-          } else {
-            resp->setStatusCode(k400BadRequest);
-            resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Association instance creation failed ");
-          }
+        } else {
+          resp->setStatusCode(k500InternalServerError);
+          resp->setContentTypeCode(CT_TEXT_HTML);
+          resp->setBody("Classifier without relational object ");
         }
       } else {
         resp->setStatusCode(k400BadRequest);
         resp->setContentTypeCode(CT_TEXT_HTML);
         resp->setBody("Classifier is abstract, creation not applicable");
       }
+
     } else {
       resp->setStatusCode(k400BadRequest);
       resp->setContentTypeCode(CT_TEXT_HTML);
       resp->setBody("Classifier not found ");
     }
 
-    // }
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);

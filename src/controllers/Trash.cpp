@@ -8,8 +8,7 @@
 #include <drogon/HttpTypes.h>
 #include <svru/Request.h>
 #include <svru/Response.h>
-#include <mttr/Class_instance_association_eliminate.h>
-#include <mttr/Class_instance_association_recover.h>
+#include <mttr/Classifier_instance_factory.h>
 #include <mttr/Classifier_instance_eliminate.h>
 #include <mttr/Classifier_instance_recover.h>
 #include <mttr/Trash_empty.h>
@@ -114,95 +113,43 @@ void Trash::recover_instance(
         qry::Util::split_instance_id(p_trash_id);
    
 
-    // lookup class at first
+    // lookup classifier
 
-    auto cls =
-        om_ptr->find_domain_element_by_id<omm::Class>(std::to_string(csf_id));
-
-
+    auto csf = om_ptr->find_domain_element_by_id<omm::Classifier>(
+        std::to_string(csf_id));
 
     auto resp = HttpResponse::newHttpResponse();
 
-
-
     auto json_ptr = req->jsonObject();
 
-    if (cls) {
-      std::shared_ptr<omm::Table> elem_lo = cls->table();
+    if (csf) {
+      const int upd_count = json_ptr->get("upd_count", 0).asInt();
 
-      if (elem_lo) {
+      auto ir = mttr::Classifier_instance_factory::instance().make_recover(
+          csf, p_trash_id, upd_count);
+      if (ir) {
+        ir->execute();
 
-        const int upd_count =
-            (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
-
-        mttr::Classifier_instance_recover ir( cls, p_trash_id,
-                                             upd_count);
-        ir.execute();
-
-        if (ir.return_code() == qry::Return_code::OK) {
+        if (ir->return_code() == qry::Return_code::OK) {
           resp->setStatusCode(drogon::k200OK);
           resp->setContentTypeCode(CT_TEXT_HTML);
           resp->setBody("Instance recovered ");
         } else {
           resp->setStatusCode(drogon::k400BadRequest);
           resp->setContentTypeCode(CT_TEXT_HTML);
-          resp->setBody("Instance restoring failed ");
+          resp->setBody("Instance recovery failed ");
         }
       } else {
         resp->setStatusCode(k500InternalServerError);
         resp->setContentTypeCode(CT_TEXT_HTML);
-        resp->setBody("Class without relational object ");
+        resp->setBody("Classifier without relational object ");
       }
-
     } else {
-      const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
-          std::to_string(csf_id));
-      if (assoc) {
-        std::shared_ptr<omm::Table> elem_lo = assoc->table();
-        const int upd_count =
-            (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
-
-        if (elem_lo) {
-          // additional table for association (binary association N-M)
-
-          mttr::Classifier_instance_recover ir(assoc, p_trash_id,
-                                               upd_count);
-          ir.execute();
-
-          if (ir.return_code() == qry::Return_code::OK) {
-            resp->setStatusCode(k200OK);
-            resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Instance recovered ");
-          } else {
-            resp->setStatusCode(k400BadRequest);
-            resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Instance restoring failed ");
-          }
-
-        } else { // no table (binary association 1-N or 1-1), one class instance
-                 // must be updated
-
-          mttr::Class_instance_association_recover iar( assoc,
-                                                       p_trash_id, upd_count);
-          iar.execute();
-
-          if (iar.return_code() == qry::Return_code::OK) {
-            resp->setStatusCode(k200OK);
-            resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Instance recovered ");
-          } else {
-            resp->setStatusCode(k400BadRequest);
-            resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Instance restoring failed ");
-          }
-        }
-
-      } else {
-        resp->setStatusCode(k400BadRequest);
-        resp->setContentTypeCode(CT_TEXT_HTML);
-        resp->setBody("Classifier not found ");
-      }
+      resp->setStatusCode(k400BadRequest);
+      resp->setContentTypeCode(CT_TEXT_HTML);
+      resp->setBody("Classifier not found ");
     }
+  
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);
@@ -239,39 +186,29 @@ void Trash::eliminate_instance(
 
   try {
 
+    auto om_ptr =
+        common::Singleton<common::Object_model_info>::instance().object();
 
-    auto om_ptr = common::Singleton<common::Object_model_info>::instance().object();
+    const auto [csf_id, row_id] = qry::Util::split_instance_id(p_trash_id);
 
+    // lookup classifier
 
-    const auto [csf_id, row_id] =
-        qry::Util::split_instance_id(p_trash_id);
-
- 
-
-    // lookup class at first
-
-    auto cls =
-        om_ptr->find_domain_element_by_id<omm::Class>(std::to_string(csf_id));
-
+    auto csf = om_ptr->find_domain_element_by_id<omm::Classifier>(
+        std::to_string(csf_id));
 
     auto resp = HttpResponse::newHttpResponse();
 
-
     auto json_ptr = req->jsonObject();
 
-    if (cls) {
-      std::shared_ptr<omm::Table> elem_lo = cls->table();
+    if (csf) {
+      const int upd_count = json_ptr->get("upd_count", 0).asInt();
 
-      if (elem_lo) {
+      auto ie = mttr::Classifier_instance_factory::instance().make_eliminate(
+          csf, p_trash_id, upd_count);
+      if (ie) {
+        ie->execute();
 
-        const int upd_count =
-            (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
-
-        mttr::Classifier_instance_eliminate ip( cls, p_trash_id,
-                                               upd_count);
-        ip.execute();
-
-        if (ip.return_code() == qry::Return_code::OK) {
+        if (ie->return_code() == qry::Return_code::OK) {
           resp->setStatusCode(drogon::k200OK);
           resp->setContentTypeCode(CT_TEXT_HTML);
           resp->setBody("Instance deleted definitively");
@@ -283,58 +220,14 @@ void Trash::eliminate_instance(
       } else {
         resp->setStatusCode(k500InternalServerError);
         resp->setContentTypeCode(CT_TEXT_HTML);
-        resp->setBody("Class without relational object ");
+        resp->setBody("Classifier without relational object ");
       }
-
     } else {
-      const auto assoc = om_ptr->find_domain_element_by_id<omm::Association>(
-          std::to_string(csf_id));
-      if (assoc) {
-        std::shared_ptr<omm::Table> elem_lo = assoc->table();
-        const int upd_count =
-            (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
-
-        if (elem_lo) {
-          // additional table for association (binary association N-M)
-
-          mttr::Classifier_instance_eliminate ip(assoc, p_trash_id,
-                                                 upd_count);
-          ip.execute();
-
-          if (ip.return_code() == qry::Return_code::OK) {
-            resp->setStatusCode(k200OK);
-            resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Instance deleted definitively");
-          } else {
-            resp->setStatusCode(k400BadRequest);
-            resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Instance definitive deletion failed ");
-          }
-
-        } else { // no table (binary association 1-N or 1-1), one class instance
-                 // must be updated
-
-          mttr::Class_instance_association_eliminate iap(assoc,
-                                                         p_trash_id, upd_count);
-          iap.execute();
-
-          if (iap.return_code() == qry::Return_code::OK) {
-            resp->setStatusCode(k200OK);
-            resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Instance deleted definitively");
-          } else {
-            resp->setStatusCode(k400BadRequest);
-            resp->setContentTypeCode(CT_TEXT_HTML);
-            resp->setBody("Instance definitive deletion failed ");
-          }
-        }
-
-      } else {
-        resp->setStatusCode(k400BadRequest);
-        resp->setContentTypeCode(CT_TEXT_HTML);
-        resp->setBody("Classifier not found ");
-      }
+      resp->setStatusCode(k400BadRequest);
+      resp->setContentTypeCode(CT_TEXT_HTML);
+      resp->setBody("Classifier not found ");
     }
+
     svru::Response::add_allow_headers(resp, req);
 
     callback(resp);
