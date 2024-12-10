@@ -18,7 +18,7 @@ public:
 
     static const std::string& Admin () ;
 
-    static const std::string& Author () ;
+    static const std::string& Producer () ;
 
     static const std::string& Reader () ;
 };

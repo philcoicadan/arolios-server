@@ -45,7 +45,7 @@ void Models::load(const HttpRequestPtr& req,std::function<void (const HttpRespon
 
         file.save();
         std::cout << "INFO: The uploaded file has been saved to the ./uploads "
-                 "directory";
+                 "directory" <<std::endl;
 
         model::Model_loader mdl_loader;
         mdl_loader.execute ( drogon::app().getUploadPath() + '/' + name );

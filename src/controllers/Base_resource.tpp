@@ -36,7 +36,9 @@ template < typename TC> void Base_resource::create(const HttpRequestPtr& req,std
 
         auto resp = HttpResponse::newHttpResponse();
         auto json_ptr = req->jsonObject() ;
-
+        if (json_ptr == nullptr) {
+              throw exception::Input_error("Data missing");
+        }
         TC ac ( *json_ptr );
         ac.execute ();
 
@@ -208,6 +210,9 @@ template <typename TU> void Base_resource::update(const HttpRequestPtr& req,std:
 
         auto resp = HttpResponse::newHttpResponse();
         auto json_ptr = req->jsonObject() ;
+        if (json_ptr == nullptr) {
+              throw exception::Input_error("Data missing");
+        }
         const int upd_count = json_ptr->get("upd_count",0).asInt();
         TU au ( elem_id, *json_ptr , upd_count);
         au.execute ();

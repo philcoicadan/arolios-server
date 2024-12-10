@@ -149,6 +149,9 @@ void Auth::change_password (const HttpRequestPtr& req,std::function<void (const 
 
         if ( user ) {
             auto json_ptr = req->jsonObject() ;
+            if (json_ptr == nullptr) {
+              throw exception::Input_error("Data missing");
+            }
 
             mttr::User_change_password ucp ( user, *json_ptr );
             ucp.execute ();

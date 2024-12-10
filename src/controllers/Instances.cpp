@@ -55,6 +55,10 @@ void Instances::update(const HttpRequestPtr &req,
 
         auto json_ptr = req->jsonObject() ;
 
+        if (json_ptr == nullptr) {
+          throw exception::Input_error("Data missing");
+        }
+
         if (csf) {
           const int upd_count = json_ptr->get("upd_count", 0).asInt();
 
@@ -135,7 +139,7 @@ void Instances::deletion(const HttpRequestPtr &req,
         auto json_ptr = req->jsonObject() ;
 
         if (csf) {
-          const int upd_count = json_ptr->get("upd_count", 0).asInt();
+          const int upd_count = (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
 
           auto id = mttr::Classifier_instance_factory::instance().make_delete(
               csf, p_inst_id, upd_count);
@@ -465,7 +469,7 @@ void Instances::import(const HttpRequestPtr &req,
 
     file.save();
     std::cout << "INFO: The uploaded file has been saved to the ./uploads "
-                 "directory";
+                 "directory" << std::endl;
 
     mttr::Data_import importer(drogon::app().getUploadPath() + '/' + name);
     importer.execute();
@@ -542,7 +546,7 @@ void Instances::import(const HttpRequestPtr &req,
 
       file.save();
       std::cout << "INFO: The uploaded file have been saved to the ./uploads "
-                  "directory";
+                  "directory" << std::endl;
     }
 
     auto resp = HttpResponse::newHttpResponse();

@@ -123,7 +123,7 @@ void Trash::recover_instance(
     auto json_ptr = req->jsonObject();
 
     if (csf) {
-      const int upd_count = json_ptr->get("upd_count", 0).asInt();
+      const int upd_count = (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
 
       auto ir = mttr::Classifier_instance_factory::instance().make_recover(
           csf, p_trash_id, upd_count);
@@ -201,7 +201,7 @@ void Trash::eliminate_instance(
     auto json_ptr = req->jsonObject();
 
     if (csf) {
-      const int upd_count = json_ptr->get("upd_count", 0).asInt();
+      const int upd_count = (json_ptr == nullptr) ? 0 : json_ptr->get("upd_count", 0).asInt();
 
       auto ie = mttr::Classifier_instance_factory::instance().make_eliminate(
           csf, p_trash_id, upd_count);

@@ -148,6 +148,10 @@ void Classifiers<T>::create_instance(
 
     auto json_ptr = req->jsonObject();
 
+    if (json_ptr == nullptr) {
+      throw exception::Input_error("Data missing");
+    }
+
     if (elem) {
       if (!elem->is_abstract()) {
 

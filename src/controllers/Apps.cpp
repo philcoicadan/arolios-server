@@ -70,7 +70,7 @@ void Apps::load_config(const HttpRequestPtr& req,std::function<void (const HttpR
 
         file.save();
         std::cout << "INFO: The uploaded file has been saved to the ./uploads "
-                 "directory";
+                 "directory" << std::endl;
         
  
         // the app name is the app identifier

@@ -266,7 +266,7 @@
             //config: The configuration of the plugin. This json object is the parameter to initialize the plugin.
             //It can be commented out
             "config": { 
-               //"ip_domain_origins": "http://localhost:3000 http://localhost:5173"
+               //"ip_domain_origins": "http://localhost:3000"
                 "ip_domain_origins" : ""
             }
         },

@@ -28,9 +28,9 @@ public:
   ADD_METHOD_TO(ctlr::Nothing::options_1, "/instances/{1}", Options,
              "arolios::filter::Patch_delete_option");
   ADD_METHOD_TO(ctlr::Instances::update, "/instances/{1}", drogon::Patch,
-             "arolios::filter::Login", arolios::filter::RAC_util::Author());
+             "arolios::filter::Login", arolios::filter::RAC_util::Producer());
   ADD_METHOD_TO(ctlr::Instances::deletion, "/instances/{1}", drogon::Delete,
-             "arolios::filter::Login", arolios::filter::RAC_util::Author());
+             "arolios::filter::Login", arolios::filter::RAC_util::Producer());
 
   ADD_METHOD_TO(ctlr::Nothing::options_9,
              "/instances/{1}/association_ends/{2}?o={3}&l={4}&s={5}&d={6}&f={7}&p={8}&lang={9}",
@@ -41,7 +41,7 @@ public:
 
   ADD_METHOD_TO(ctlr::Nothing::options, "/instances", Options, "arolios::filter::Put_post_option");
   ADD_METHOD_TO(ctlr::Instances::import, "/instances", drogon::Put, "arolios::filter::Login",
-             arolios::filter::RAC_util::Author());
+             arolios::filter::RAC_util::Producer());
   ADD_METHOD_TO(ctlr::Instances::query_from_files, "/instances", drogon::Post,
              "arolios::filter::Login", arolios::filter::RAC_util::Reader());
 

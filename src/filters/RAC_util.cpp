@@ -20,8 +20,8 @@ const std::string& RAC_util::Admin () {
         return role;
     }
 
-const std::string& RAC_util::Author () {
-        static std::string role =  "arolios::filter::RAC_user_role<" + std::to_string(static_cast<int>(common::User_role::author)) +">";
+const std::string& RAC_util::Producer () {
+        static std::string role =  "arolios::filter::RAC_user_role<" + std::to_string(static_cast<int>(common::User_role::producer)) +">";
         return role;
     }
 

@@ -32,7 +32,7 @@ public:
   ADD_METHOD_TO(ctlr::Nothing::options_1, "/classes/{1}/instances", Options,
                 "arolios::filter::Post_option");
   ADD_METHOD_TO(ctlr::Classifiers<omm::Class>::create_instance, "/classes/{1}/instances", drogon::Post,
-                "arolios::filter::Login", arolios::filter::RAC_util::Author());
+                "arolios::filter::Login", arolios::filter::RAC_util::Producer());
 
   ADD_METHOD_TO(ctlr::Nothing::options_7,
                 "/classes/{1}/properties?o={2}&l={3}&s={4}&d={5}&c={6}&lang={7}",
