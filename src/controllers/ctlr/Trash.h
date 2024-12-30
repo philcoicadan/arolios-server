@@ -27,10 +27,10 @@ class Trash:public drogon::HttpController<Trash>
  
     ADD_METHOD_TO(ctlr::Nothing::options_1, "/trash/{1}", Options, "arolios::filter::Patch_delete_option");    
     ADD_METHOD_TO(ctlr::Trash::recover_instance, "/trash/{1}", drogon::Patch , "arolios::filter::Login", arolios::filter::RAC_util::Producer());
-    ADD_METHOD_TO(ctlr::Trash::eliminate_instance, "/trash/{1}", drogon::Delete , "arolios::filter::Login", arolios::filter::RAC_util::Admin());
+    ADD_METHOD_TO(ctlr::Trash::eliminate_instance, "/trash/{1}", drogon::Delete , "arolios::filter::Login", arolios::filter::RAC_util::Producer());
    
     ADD_METHOD_TO(ctlr::Nothing::options, "/trash",Options, "arolios::filter::Delete_option");
-    ADD_METHOD_TO(ctlr::Trash::empty, "/trash", drogon::Delete, "arolios::filter::Login", arolios::filter::RAC_util::Admin());    
+    ADD_METHOD_TO(ctlr::Trash::empty, "/trash", drogon::Delete, "arolios::filter::Login", arolios::filter::RAC_util::Producer());    
     
  
     METHOD_LIST_END
