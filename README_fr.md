@@ -9,7 +9,7 @@ Voir la documentation [ici](https://lab.frogg.it/philcoicadan/arolios-doc)
 
 # Assistance
 
-Si vous constatez une anomalie ou si vous avez une suggestion d'amélioration, ouvrez un ticket dans ce projet. Pour toute autre demande, vous pouvez envoyer une courriel à [cette adresse](mailto:philcoicadan@arolios.org).
+Si vous rencontrez un problème ou si vous avez une suggestion d'amélioration, ouvrez un ticket dans ce projet. Pour toute autre demande, vous pouvez envoyer une courriel à [cette adresse](mailto:philcoicadan@arolios.org).
 
 
 # Contribution
