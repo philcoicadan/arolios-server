@@ -9,11 +9,6 @@
 #include <svru/About.h>
 
 int main(int argc, char *argv[]) {
-  /*std::cout << "AROLIOS is a trademark registered in France." << std::endl
-  << "AROLIOS Server is a web server implementing the AROLIOS API." << std::endl
-  << "Copyright (C) 2024 Philippe Coicadan. All rights reserved." << std::endl 
-  << "License: AGPL-3.0-or-later" << std::endl
-  ;*/
 
   std::cout << arolios::svru::About::notice_text(); 
 

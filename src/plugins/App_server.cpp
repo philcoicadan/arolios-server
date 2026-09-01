@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (C) 2024 Philippe Coicadan. All rights reserved.
+ * Copyright (C) 2024-2026 Philippe Coicadan. All rights reserved.
  * License: AGPL-3.0-or-later
  *
  */
@@ -133,7 +133,7 @@ void App_server::initAndStart(const Json::Value &p_config) {
             qry::Model_retriever mdl_rtv ;
             const auto std_dom =  mdl_info->standard_domain();
             insert<omm::Package>( std_dom );
-            mdl_rtv.retrieve_standard_types ();
+            mdl_rtv.retrieve_classifiers (std_dom);
             mdl_rtv.retrieve_properties ( std_dom) ;
             mdl_rtv.retrieve_logical_fields ( std_dom ); 
 	  
