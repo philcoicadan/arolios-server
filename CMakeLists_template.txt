@@ -48,7 +48,6 @@ ${AROLIOS_CORE_LIB_DIR}/libbase.so
 ${AROLIOS_CORE_LIB_DIR}/libmodel.so
 ${AROLIOS_CORE_LIB_DIR}/libmttr.so
 ${AROLIOS_CORE_LIB_DIR}/libtqry.so
-#/home/philippe/WS2/lib/libbcrypt.so
 ${XERCES_LIB_DIR}/libxerces-c-3.2.so
 ${ANTLR_LIB_DIR}/libantlr4-runtime.so)
 # ##############################################################################
